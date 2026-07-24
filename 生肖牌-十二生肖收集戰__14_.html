@@ -1,0 +1,2209 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>生肖牌 · 十二生肖收集戰</title>
+<style>
+  :root{
+    --paper:#F4EDDD;
+    --paper-dark:#E9DFC7;
+    --ink:#241C18;
+    --seal:#A8201A;
+    --seal-dark:#7C160F;
+    --gold:#B8892B;
+    --gold-soft:#D8B968;
+    --line:#C9B98F;
+    --card-bg:#2A1F16;
+    --card-bg-2:#190F09;
+    --card-text:#F1E3C2;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  html{height:100%;}
+  body{
+    background:var(--paper);
+    background-image:
+      radial-gradient(circle at 10% 15%, rgba(168,32,26,0.05), transparent 40%),
+      radial-gradient(circle at 90% 85%, rgba(184,137,43,0.06), transparent 45%);
+    color:var(--ink);
+    font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+    min-height:100vh;
+  }
+  h1,h2,h3,.brush{
+    font-family:"Noto Serif TC","Songti TC",serif;
+    font-weight:900;
+  }
+  :fullscreen, :-webkit-full-screen{background:var(--paper);}
+  .app{
+    max-width:clamp(340px,94vw,1180px);margin:0 auto;
+    padding:clamp(10px,2.4vw,22px) clamp(10px,2.4vw,22px) clamp(40px,6vw,64px);
+  }
+  body.is-fullscreen .app{max-width:clamp(360px,92vw,1320px);}
+
+  /* ---------- orientation hint ---------- */
+  .orient-hint{
+    display:none;position:fixed;top:0;left:0;right:0;z-index:200;
+    background:var(--seal);color:#fff;font-size:clamp(11px,3vw,13px);
+    padding:8px clamp(10px,3vw,16px);align-items:center;justify-content:space-between;gap:10px;
+    box-shadow:0 2px 8px rgba(0,0,0,.25);
+    padding-left:max(clamp(10px,3vw,16px), env(safe-area-inset-left));
+    padding-right:max(clamp(10px,3vw,16px), env(safe-area-inset-right));
+  }
+  .orient-hint span{line-height:1.4;}
+  .orient-hint button{
+    background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.6);color:#fff;
+    font-size:clamp(11px,2.6vw,13px);cursor:pointer;padding:4px 10px;border-radius:14px;
+    font-family:inherit;flex-shrink:0;
+  }
+  body.show-orient-hint .orient-hint{display:flex;}
+
+  /* ---------- header ---------- */
+  header.top{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:clamp(8px,1.6vw,14px) 4px clamp(12px,2.2vw,22px);
+    border-bottom:2px solid var(--line);margin-bottom:clamp(10px,2vw,20px);
+  }
+  header.top .title{display:flex;align-items:center;gap:clamp(8px,1.6vw,14px);min-width:0;}
+  .header-actions{display:flex;align-items:center;gap:clamp(6px,1.2vw,10px);flex-shrink:0;}
+  .seal-badge{
+    width:clamp(38px,5.5vw,50px);height:clamp(38px,5.5vw,50px);border:3px solid var(--seal);border-radius:8px;
+    transform:rotate(45deg);display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  .seal-badge span{transform:rotate(-45deg);color:var(--seal);font-weight:900;font-size:clamp(16px,2.4vw,22px);}
+  header.top h1{margin:0;font-size:clamp(18px,2.8vw,26px);color:var(--ink);letter-spacing:clamp(1px,.3vw,2px);}
+  header.top .sub{
+    font-size:clamp(10px,1.8vw,12px);color:#8a7a5c;letter-spacing:clamp(1px,.3vw,3px);margin-top:2px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .icon-btn{
+    background:transparent;border:1.5px solid var(--ink);color:var(--ink);
+    border-radius:20px;padding:clamp(6px,1.1vw,8px) clamp(11px,2vw,18px);font-size:clamp(12px,1.7vw,14px);cursor:pointer;
+    font-family:inherit;transition:.15s;
+  }
+  .icon-btn:hover{background:var(--ink);color:var(--paper);}
+  .fs-btn{
+    width:clamp(32px,4.6vw,38px);height:clamp(32px,4.6vw,38px);padding:0;
+    display:flex;align-items:center;justify-content:center;font-size:clamp(15px,2.2vw,18px);
+    border-radius:50%;flex-shrink:0;
+  }
+
+  /* ---------- setup screen ---------- */
+  .panel{
+    background:var(--paper-dark);border:1px solid var(--line);border-radius:clamp(10px,1.6vw,16px);
+    padding:clamp(16px,3vw,26px);margin-bottom:clamp(10px,2vw,16px);
+  }
+  .field-row{display:flex;gap:clamp(8px,1.6vw,10px);align-items:center;margin-bottom:10px;flex-wrap:wrap;}
+  .field-row input[type=text]{
+    flex:1;min-width:120px;padding:clamp(8px,1.4vw,10px) clamp(10px,1.8vw,14px);border-radius:8px;border:1.5px solid var(--line);
+    background:var(--paper);font-family:inherit;font-size:clamp(13px,1.8vw,15px);color:var(--ink);
+  }
+  .field-row .seal-num{
+    width:clamp(24px,3.4vw,30px);height:clamp(24px,3.4vw,30px);border-radius:50%;background:var(--seal);color:var(--paper);
+    display:flex;align-items:center;justify-content:center;font-weight:900;font-size:clamp(12px,1.6vw,14px);flex-shrink:0;
+  }
+  .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
+  .btn{
+    border:none;border-radius:clamp(7px,1.1vw,10px);padding:clamp(9px,1.7vw,12px) clamp(16px,2.8vw,22px);font-family:inherit;font-weight:700;
+    font-size:clamp(13px,1.8vw,15px);cursor:pointer;transition:.15s;
+  }
+  .btn.primary{background:var(--seal);color:#fff;}
+  .btn.primary:hover{background:var(--seal-dark);}
+  .btn.ghost{background:transparent;border:1.5px solid var(--ink);color:var(--ink);}
+  .btn.ghost:hover{background:var(--ink);color:var(--paper);}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+  .count-toggle{display:flex;gap:8px;margin-bottom:16px;}
+  .count-toggle button{
+    width:clamp(38px,5.6vw,46px);height:clamp(38px,5.6vw,46px);border-radius:50%;border:2px solid var(--line);background:var(--paper);
+    font-weight:900;font-family:inherit;cursor:pointer;font-size:clamp(14px,2vw,17px);color:var(--ink);
+  }
+  .count-toggle button.active{background:var(--seal);border-color:var(--seal);color:#fff;}
+  .type-toggle{display:flex;border:1.5px solid var(--line);border-radius:8px;overflow:hidden;flex-shrink:0;}
+  .type-btn{
+    border:none;background:var(--paper);color:var(--ink);padding:clamp(7px,1.3vw,10px) clamp(9px,1.7vw,13px);font-family:inherit;
+    font-size:clamp(11px,1.5vw,13px);cursor:pointer;font-weight:700;
+  }
+  .type-btn.active{background:var(--seal);color:#fff;}
+  .spinner{
+    width:clamp(36px,5.2vw,44px);height:clamp(36px,5.2vw,44px);border:4px solid var(--line);border-top-color:var(--seal);
+    border-radius:50%;margin:6px auto 22px;animation:spin 1s linear infinite;
+  }
+  .spinner-inline{
+    display:inline-block;width:.85em;height:.85em;margin-left:.35em;vertical-align:-0.12em;
+    border:2px solid var(--line);border-top-color:var(--seal);border-radius:50%;
+    animation:spin .8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* ---------------- 生肖圖示（靜態 Emoji） ---------------- */
+  .zodiac-emoji{
+    display:inline-block;line-height:1;vertical-align:-0.08em;
+  }
+
+  /* ---------------- 畫面轉場動畫 ---------------- */
+  @keyframes screenEnterAnim{
+    from{ opacity:0; transform:translateY(14px) scale(.985); }
+    to{ opacity:1; transform:translateY(0) scale(1); }
+  }
+  .screen-enter{
+    animation: screenEnterAnim .32s cubic-bezier(.22,.61,.36,1) both;
+  }
+  .screen-exit{
+    animation: screenExitAnim .17s ease-in both;
+  }
+  @keyframes screenExitAnim{
+    from{ opacity:1; transform:translateY(0) scale(1); }
+    to{ opacity:0; transform:translateY(-10px) scale(.985); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .screen-enter, .screen-exit{ animation:none !important; }
+  }
+
+  /* ---------- pass screen ---------- */
+  .pass-screen{
+    text-align:center;padding:clamp(36px,8vw,80px) clamp(14px,3vw,20px);
+  }
+  .pass-screen .seal-badge{width:clamp(64px,10vw,90px);height:clamp(64px,10vw,90px);margin:0 auto clamp(16px,3vw,26px);}
+  .pass-screen .seal-badge span{font-size:clamp(26px,4.4vw,34px);}
+  .pass-screen h2{font-size:clamp(20px,3.4vw,26px);margin:0 0 8px;}
+  .pass-screen p{color:#6b5c40;font-size:clamp(12.5px,1.8vw,14px);margin-bottom:clamp(18px,3vw,26px);}
+  .pass-screen .log-panel{text-align:left;max-width:clamp(280px,90vw,440px);margin:0 auto;}
+
+  /* ---------- game board ---------- */
+  .opponents{
+    display:flex;gap:clamp(8px,1.6vw,10px);flex-wrap:wrap;margin-bottom:clamp(10px,2vw,16px);
+  }
+  .opp-card{
+    flex:1;min-width:clamp(130px,26vw,150px);background:var(--paper-dark);border:1px solid var(--line);
+    border-radius:clamp(10px,1.4vw,12px);padding:clamp(10px,1.8vw,12px) clamp(11px,2vw,14px);
+  }
+  .opp-card.active{border-color:var(--seal);box-shadow:0 0 0 2px rgba(168,32,26,.25) inset;}
+  .opp-name{font-weight:900;font-size:clamp(12.5px,1.7vw,14px);display:flex;justify-content:space-between;align-items:center;}
+  .opp-name .turn-tag{font-size:clamp(9px,1.2vw,10px);background:var(--seal);color:#fff;padding:2px 8px;border-radius:10px;letter-spacing:1px;}
+  .opp-meta{font-size:clamp(11px,1.5vw,12px);color:#7a6a4d;margin-top:6px;display:flex;gap:clamp(8px,1.6vw,12px);flex-wrap:wrap;}
+  .mini-field{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap;}
+  .mini-chip{
+    width:clamp(22px,3.2vw,26px);height:clamp(22px,3.2vw,26px);border-radius:6px;background:var(--seal);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:clamp(12px,1.6vw,14px);
+  }
+  .mini-collect{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap;cursor:pointer;padding:3px;margin-left:-3px;border-radius:6px;transition:.15s;}
+  .mini-collect:hover{background:rgba(184,137,43,.15);}
+  .mini-dot{
+    width:clamp(16px,2.4vw,18px);height:clamp(16px,2.4vw,18px);border-radius:50%;background:var(--paper);
+    border:1px solid var(--line);color:#9a8a68;
+    display:flex;align-items:center;justify-content:center;
+    font-size:clamp(8px,1.1vw,9px);font-weight:900;font-family:inherit;flex-shrink:0;
+  }
+  .mini-dot.on{background:var(--gold);border-color:var(--gold-soft);color:#fff;}
+
+  .table{
+    background:var(--paper-dark);border:1px solid var(--line);border-radius:clamp(10px,1.6vw,14px);
+    padding:clamp(12px,2.2vw,16px);margin-bottom:clamp(10px,2vw,16px);
+  }
+  .table-row{display:flex;justify-content:space-between;align-items:center;font-size:clamp(12px,1.6vw,13px);color:#6b5c40;margin-bottom:10px;flex-wrap:wrap;gap:6px;}
+  .deck-pile{display:flex;gap:clamp(12px,2.4vw,18px);align-items:center;}
+  .pile{
+    width:clamp(44px,7vw,52px);height:clamp(62px,10vw,74px);border-radius:6px;position:relative;
+    display:flex;align-items:center;justify-content:center;font-weight:900;font-size:clamp(10px,1.4vw,12px);color:#fff;
+    background:repeating-linear-gradient(45deg,var(--seal),var(--seal) 6px,var(--seal-dark) 6px,var(--seal-dark) 12px);
+    border:2px solid var(--seal-dark);
+  }
+  .pile.discard{background:var(--paper);color:var(--ink);border:2px dashed var(--line);}
+  .pile-label{font-size:clamp(10px,1.4vw,11px);text-align:center;margin-top:4px;color:#7a6a4d;}
+
+  .my-field-area{margin-bottom:8px;}
+  .my-field-area .cards-row{display:flex;gap:clamp(6px,1.3vw,8px);flex-wrap:wrap;min-height:clamp(60px,10vw,78px);}
+
+  .log-panel{
+    background:var(--paper);border:1px solid var(--line);border-radius:10px;
+    padding:clamp(8px,1.6vw,10px) clamp(10px,2vw,14px);font-size:clamp(11px,1.5vw,12.5px);color:#5c4e37;
+    max-height:clamp(90px,15vw,110px);overflow-y:auto;margin-bottom:clamp(10px,2vw,16px);
+    line-height:1.7;
+  }
+  .log-panel .entry{border-bottom:1px dotted var(--line);padding:3px 0;}
+  .log-panel .entry:last-child{border-bottom:none;color:var(--ink);font-weight:700;}
+
+  .action-bar{display:flex;gap:clamp(6px,1.4vw,8px);flex-wrap:wrap;margin-bottom:clamp(14px,2.4vw,18px);}
+  .action-btn{
+    flex:1;min-width:clamp(110px,22vw,130px);background:var(--ink);color:var(--paper);border:none;border-radius:10px;
+    padding:clamp(10px,1.8vw,12px) clamp(6px,1.2vw,8px);font-family:inherit;font-weight:700;font-size:clamp(12px,1.6vw,13px);cursor:pointer;transition:.15s;
+    display:flex;flex-direction:column;align-items:center;gap:2px;
+  }
+  .action-btn small{font-weight:400;opacity:.75;font-size:clamp(9.5px,1.3vw,10.5px);}
+  .action-btn:hover:not(:disabled){background:var(--seal);}
+  .action-btn:disabled{opacity:.35;cursor:not-allowed;}
+
+  .hand-section h3{margin:0 0 8px;font-size:clamp(12.5px,1.7vw,14px);color:#7a6a4d;letter-spacing:1px;}
+  .hand-row{display:flex;gap:clamp(6px,1.3vw,8px);flex-wrap:wrap;min-height:clamp(84px,14vw,100px);}
+
+  .card{
+    width:clamp(58px,10vw,72px);height:clamp(84px,14.5vw,104px);border-radius:10px;
+    background:
+      radial-gradient(circle at 50% 34%, rgba(216,185,104,.14), transparent 62%),
+      linear-gradient(160deg, var(--card-bg) 0%, var(--card-bg-2) 100%);
+    border:2px solid var(--gold);position:relative;cursor:pointer;
+    box-shadow:0 3px 7px rgba(0,0,0,.4), 0 1px 2px rgba(0,0,0,.3), inset 0 0 0 3px rgba(216,185,104,.14);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    transition:.15s;user-select:none;flex-shrink:0;
+  }
+  .card::after{
+    content:'';position:absolute;inset:5px;border:1px solid rgba(184,137,43,.38);border-radius:6px;pointer-events:none;
+  }
+  .card:hover{transform:translateY(-4px);box-shadow:0 8px 15px rgba(0,0,0,.45),0 2px 4px rgba(0,0,0,.3), inset 0 0 0 3px rgba(216,185,104,.24);}
+  .card.selected{
+    border-color:var(--gold-soft);background:
+      radial-gradient(circle at 50% 34%, rgba(216,185,104,.28), transparent 62%),
+      linear-gradient(160deg,#3C2E1B,#241A0F);
+    transform:translateY(-8px);box-shadow:0 10px 18px rgba(0,0,0,.5), inset 0 0 0 3px rgba(216,185,104,.5);
+  }
+  .card .num{
+    position:absolute;top:4px;left:5px;font-size:clamp(8px,1.1vw,9px);font-weight:900;color:var(--seal);
+    background:rgba(251,246,230,.7);padding:1px 4px;border-radius:6px;letter-spacing:.5px;line-height:1.5;
+  }
+  .card .emoji{font-size:clamp(30px,5.6vw,40px);filter:drop-shadow(0 1px 2px rgba(0,0,0,.45));}
+  .card .zname{
+    font-family:"Noto Serif TC",serif;font-weight:900;font-size:clamp(12px,1.7vw,14px);margin-top:5px;
+    letter-spacing:1.5px;position:relative;padding-top:4px;color:var(--card-text);
+  }
+  .card .zname::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:16px;height:1px;background:var(--gold-soft);}
+  .card.small{width:clamp(42px,7.4vw,50px);height:clamp(60px,10.6vw,70px);}
+  .card.small::after{inset:4px;}
+  .card.small .emoji{font-size:clamp(20px,3.6vw,25px);}
+  .card.small .zname{font-size:clamp(10px,1.4vw,11px);margin-top:3px;padding-top:3px;}
+  .card.small .zname::before{width:12px;}
+  .card.tiny{width:clamp(34px,5.8vw,38px);height:clamp(48px,8.2vw,54px);}
+  .card.tiny::after{inset:3px;border-width:1px;}
+  .card.tiny .emoji{font-size:clamp(16px,2.8vw,19px);}
+  .card.tiny .zname{font-size:clamp(7.5px,1.05vw,8.5px);margin-top:2px;padding-top:2px;}
+  .card.tiny .zname::before{width:9px;}
+  .card.face-down{background:repeating-linear-gradient(45deg,var(--seal),var(--seal) 5px,var(--seal-dark) 5px,var(--seal-dark) 10px);}
+  .card.face-down::after{border-color:rgba(255,255,255,.25);}
+  .card-info-btn{
+    position:absolute;top:2px;right:2px;width:clamp(14px,2.2vw,17px);height:clamp(14px,2.2vw,17px);
+    border-radius:50%;background:rgba(241,227,194,.85);color:var(--seal-dark);border:1px solid rgba(168,32,26,.4);
+    font-size:clamp(9px,1.3vw,10px);font-weight:900;display:flex;align-items:center;justify-content:center;
+    cursor:pointer;line-height:1;z-index:2;font-family:inherit;
+  }
+  .card-info-btn:hover{background:var(--seal);color:#fff;}
+  .card.tiny .card-info-btn{width:12px;height:12px;font-size:8px;}
+  .zodiac-info-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .zodiac-info-header .emoji{font-size:clamp(30px,5vw,38px);}
+  .zodiac-info-header .zname{font-family:"Noto Serif TC",serif;font-weight:900;font-size:clamp(17px,2.6vw,20px);}
+  .zodiac-info-header .num{font-size:clamp(11px,1.6vw,12px);color:#8a7a5c;letter-spacing:1px;}
+
+  /* ---------- modal ---------- */
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(36,28,24,.55);display:flex;
+    align-items:center;justify-content:center;z-index:50;padding:16px;
+  }
+  .modal-box{
+    background:var(--paper);border-radius:clamp(10px,1.8vw,14px);padding:clamp(16px,3vw,22px);max-width:clamp(320px,90vw,520px);width:100%;
+    max-height:85vh;overflow-y:auto;border:2px solid var(--seal);
+  }
+  .modal-box h3{margin:0 0 6px;font-size:clamp(15px,2.2vw,18px);}
+  .modal-box p.desc{font-size:clamp(11.5px,1.6vw,13px);color:#6b5c40;margin-bottom:clamp(12px,2.2vw,16px);}
+  .choice-list{display:flex;flex-direction:column;gap:8px;}
+  .choice-item{
+    padding:clamp(8px,1.6vw,10px) clamp(11px,2vw,14px);border:1.5px solid var(--line);border-radius:9px;background:var(--paper-dark);
+    cursor:pointer;font-size:clamp(12.5px,1.7vw,14px);display:flex;justify-content:space-between;align-items:center;
+  }
+  .choice-item:hover{border-color:var(--seal);}
+  .modal-cards{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;}
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;}
+
+  .rules-body{font-size:clamp(12px,1.6vw,13px);line-height:1.9;color:#4a3f2e;}
+  .rules-body h4{margin:14px 0 4px;color:var(--seal);font-size:clamp(13px,1.8vw,14px);}
+
+  .winner-screen{text-align:center;padding:clamp(40px,7vw,60px) clamp(14px,3vw,20px);}
+  .winner-screen .emoji-big{font-size:clamp(48px,8vw,64px);}
+  .helper-note{font-size:clamp(10px,1.4vw,11px);color:#8a7a5c;margin-top:6px;}
+  footer.credit{text-align:center;font-size:clamp(9.5px,1.3vw,10.5px);color:#a0916f;margin-top:clamp(20px,4vw,30px);letter-spacing:1px;}
+
+  /* ---------- 賽後總結 ---------- */
+  .summary-wrap{text-align:left;padding:clamp(18px,3.5vw,28px) clamp(14px,3vw,20px) clamp(30px,5vw,40px);}
+  .summary-title{text-align:center;font-family:"Noto Serif TC",serif;font-weight:900;font-size:clamp(15px,2vw,17px);color:#7a6a4d;letter-spacing:2px;margin:clamp(20px,3.5vw,28px) 0 clamp(10px,1.8vw,14px);}
+  .mvp-card{
+    background:linear-gradient(135deg,#FBF2D9,var(--paper-dark));border:2px solid var(--gold);border-radius:clamp(12px,2vw,16px);
+    padding:clamp(14px,2.6vw,20px);display:flex;align-items:center;gap:clamp(12px,2.2vw,16px);margin-bottom:clamp(14px,2.4vw,18px);
+  }
+  .mvp-card .mvp-emoji{font-size:clamp(38px,6vw,50px);flex-shrink:0;}
+  .mvp-card .mvp-label{font-size:clamp(10px,1.4vw,11px);color:var(--seal);font-weight:900;letter-spacing:2px;margin-bottom:2px;}
+  .mvp-card .mvp-name{font-family:"Noto Serif TC",serif;font-weight:900;font-size:clamp(16px,2.4vw,19px);color:var(--ink);}
+  .mvp-card .mvp-reason{font-size:clamp(11px,1.5vw,12.5px);color:#6b5c40;margin-top:3px;}
+  .achv-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:clamp(14px,2.4vw,18px);}
+  .achv-chip{
+    background:var(--paper-dark);border:1px solid var(--line);border-radius:10px;padding:8px 10px;text-align:center;
+  }
+  .achv-chip .achv-title{font-size:clamp(9.5px,1.3vw,10.5px);color:#8a7a5c;letter-spacing:1px;margin-bottom:3px;}
+  .achv-chip .achv-name{font-size:clamp(12px,1.7vw,13.5px);font-weight:900;color:var(--seal);}
+  .achv-chip .achv-value{font-size:clamp(10px,1.4vw,11px);color:#6b5c40;}
+  .stat-table{width:100%;border-collapse:collapse;font-size:clamp(11px,1.5vw,12.5px);}
+  .stat-table th,.stat-table td{padding:clamp(6px,1.2vw,8px) clamp(5px,1vw,7px);text-align:center;border-bottom:1px solid var(--line);}
+  .stat-table th{color:#8a7a5c;font-weight:700;font-size:clamp(9.5px,1.3vw,10.5px);letter-spacing:.5px;}
+  .stat-table td:first-child,.stat-table th:first-child{text-align:left;}
+  .stat-table tr.is-mvp td{background:rgba(212,166,66,.15);font-weight:900;color:var(--ink);}
+  .stat-table-scroll{overflow-x:auto;margin-bottom:clamp(14px,2.4vw,18px);border-radius:10px;}
+
+  @media (max-width:600px){
+    .opp-card{min-width:100%;}
+  }
+
+  /* ---------- 全螢幕狀態調整 ---------- */
+  body.is-fullscreen .log-panel{max-height:clamp(110px,18vw,150px);}
+  body.is-fullscreen .app{padding-bottom:clamp(30px,5vw,50px);}
+
+  /* ---------- 橫向手機自動調整佈局 ---------- */
+  body.is-landscape-phone .app{padding:8px clamp(10px,2.4vw,18px) 24px;}
+  body.is-landscape-phone header.top{padding:6px 4px 8px;margin-bottom:8px;}
+  body.is-landscape-phone .seal-badge{width:30px;height:30px;}
+  body.is-landscape-phone header.top h1{font-size:15px;letter-spacing:1px;}
+  body.is-landscape-phone header.top .sub{font-size:9.5px;max-width:34vw;}
+  body.is-landscape-phone .panel{padding:14px;}
+  body.is-landscape-phone .opponents{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;}
+  body.is-landscape-phone .opp-card{min-width:150px;flex:0 0 auto;}
+  body.is-landscape-phone .table{padding:10px;}
+  body.is-landscape-phone .log-panel{max-height:56px;}
+  body.is-landscape-phone .action-bar{flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px;}
+  body.is-landscape-phone .action-btn{min-width:110px;flex:0 0 auto;}
+  body.is-landscape-phone .hand-row{overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px;}
+  body.is-landscape-phone .card{width:56px;height:78px;}
+  body.is-landscape-phone .pass-screen{padding:16px 14px;}
+
+  /* ---------- 起始畫面 ---------- */
+  .start-screen{
+    min-height:78vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:clamp(30px,8vw,60px) 16px;
+  }
+  .start-screen .seal-badge.big{
+    width:clamp(70px,12vw,100px);height:clamp(70px,12vw,100px);margin-bottom:clamp(18px,3vw,26px);border-width:4px;
+  }
+  .start-screen .seal-badge.big span{font-size:clamp(28px,5vw,40px);}
+  .start-screen h1{font-size:clamp(26px,5vw,40px);margin:0;letter-spacing:4px;}
+  .start-screen .sub{font-size:clamp(12px,2vw,15px);color:#8a7a5c;letter-spacing:4px;margin-top:6px;}
+  .start-screen .start-desc{color:#6b5c40;font-size:clamp(12.5px,1.8vw,14px);margin:clamp(20px,4vw,30px) 0 clamp(14px,2.6vw,20px);max-width:440px;line-height:1.7;}
+  .start-btn{font-size:clamp(15px,2.2vw,18px);padding:clamp(13px,2.4vw,16px) clamp(28px,5vw,40px);border-radius:30px;animation:pulseBtn 1.8s ease-in-out infinite;}
+  @keyframes pulseBtn{0%,100%{box-shadow:0 0 0 0 rgba(168,32,26,.35);}50%{box-shadow:0 0 0 10px rgba(168,32,26,0);}}
+  .start-hint{margin-top:16px;font-size:clamp(11px,1.6vw,12.5px);color:#8a7a5c;cursor:pointer;}
+  .start-hint:hover{color:var(--seal);}
+
+  /* ---------- 大廳：模式選擇 ---------- */
+  .mode-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0 14px;}
+  .mode-card{
+    background:var(--paper);border:1.5px solid var(--line);border-radius:12px;padding:clamp(12px,2vw,16px);
+    cursor:pointer;text-align:left;transition:.15s;
+  }
+  .mode-card:hover{border-color:var(--seal);transform:translateY(-2px);}
+  .mode-card.active{border-color:var(--seal);box-shadow:0 0 0 2px rgba(168,32,26,.2) inset;}
+  .mode-card .mode-emoji{font-size:clamp(22px,3.4vw,28px);}
+  .mode-card .mode-title{font-weight:900;font-size:clamp(13px,1.8vw,14.5px);margin-top:4px;}
+  .mode-card .mode-desc{font-size:clamp(10.5px,1.5vw,11.5px);color:#7a6a4d;margin-top:3px;line-height:1.5;}
+
+  /* ---------- 設定彈窗：開關與音量 ---------- */
+  .settings-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;}
+  input[type=range].vol-slider{width:100%;margin:0 0 16px;accent-color:var(--seal);}
+  .switch{position:relative;display:inline-block;width:42px;height:24px;flex-shrink:0;}
+  .switch input{opacity:0;width:0;height:0;position:absolute;}
+  .switch .slider{position:absolute;cursor:pointer;inset:0;background:var(--line);transition:.2s;border-radius:24px;}
+  .switch .slider::before{position:absolute;content:'';height:18px;width:18px;left:3px;bottom:3px;background:#fff;transition:.2s;border-radius:50%;}
+  .switch input:checked + .slider{background:var(--seal);}
+  .switch input:checked + .slider::before{transform:translateX(18px);}
+  .settings-label{font-size:clamp(12.5px,1.7vw,14px);font-weight:700;}
+
+  /* ---------- 圖文並茂新手教學 ---------- */
+  .tut-page-title{display:flex;align-items:center;gap:8px;}
+  .tut-page-title .tut-page-icon{font-size:clamp(22px,3.6vw,28px);}
+  .tut-steps{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0;}
+  .tut-step{
+    flex:1;min-width:clamp(110px,26vw,140px);background:var(--paper-dark);border:1px solid var(--line);
+    border-radius:12px;padding:clamp(10px,1.8vw,12px);text-align:center;
+  }
+  .tut-step-icon{font-size:clamp(24px,4vw,30px);}
+  .tut-step-title{font-weight:900;font-size:clamp(12px,1.7vw,13px);margin-top:6px;}
+  .tut-step-desc{font-size:clamp(10.5px,1.5vw,11.5px);color:#6b5c40;margin-top:4px;line-height:1.5;}
+  .tut-zodiac-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin:10px 0;}
+  .tut-zodiac-item{display:flex;gap:8px;align-items:flex-start;background:var(--paper-dark);border:1px solid var(--line);border-radius:10px;padding:8px 10px;}
+  .tut-zodiac-item .emoji{font-size:clamp(22px,3.6vw,26px);flex-shrink:0;}
+  .tut-zodiac-item .name{font-weight:900;font-size:clamp(12px,1.6vw,13px);}
+  .tut-zodiac-item .desc{font-size:clamp(10.2px,1.4vw,11px);color:#6b5c40;line-height:1.5;}
+  .tut-dots{display:flex;justify-content:center;gap:6px;margin:16px 0 4px;}
+  .tut-dot{width:8px;height:8px;border-radius:50%;background:var(--line);cursor:pointer;}
+  .tut-dot.active{background:var(--seal);}
+</style>
+</head>
+<body>
+<div id="orientHint" class="orient-hint">
+  <span>📱 偵測到橫向手機模式，版面已自動壓縮並可左右滑動；建議直向持握操作更順手。</span>
+  <button id="orientHintClose">知道了</button>
+</div>
+<div class="app" id="app"></div>
+
+<script>
+/* ============================================================
+   資料定義
+   ============================================================ */
+const ZODIAC = [
+  {id:1, name:'鼠', emoji:'🐀', desc:'在場時，所有生肖能力皆無法發動。'},
+  {id:2, name:'牛', emoji:'🐂', desc:'當你被其他玩家的能力影響時，從牌庫抽兩張牌。'},
+  {id:3, name:'虎', emoji:'🐯', desc:'當你被出牌玩家的能力影響時，可從對方手牌抽一張。'},
+  {id:4, name:'兔', emoji:'🐇', desc:'指定一位玩家，與其交換全部手牌。'},
+  {id:5, name:'龍', emoji:'🐉', desc:'公開呼叫一個生肖，持有者需坦承擁有（不能詢問持有張數）。選一位玩家，拿走其擁有的全部該生肖。'},
+  {id:6, name:'蛇', emoji:'🐍', desc:'將手牌洗回牌庫，重新抽取相同數量。'},
+  {id:7, name:'馬', emoji:'🐎', desc:'選擇方向，所有玩家向該方向傳遞三張手牌。'},
+  {id:8, name:'羊', emoji:'🐐', desc:'指定一位玩家，將五張手牌放回牌庫底。'},
+  {id:9, name:'猴', emoji:'🐒', desc:'從每位其他玩家手中各抽取一張牌。'},
+  {id:10,name:'雞', emoji:'🐓', desc:'查看每位玩家三張手牌，並公開宣告。'},
+  {id:11,name:'狗', emoji:'🐕', desc:'指定一位玩家，查看其所有手牌。'},
+  {id:12,name:'豬', emoji:'🐖', desc:'將場上所有發動中的生肖牌（含豬）洗回牌庫，並抽三張。'}
+];
+const zById = id => ZODIAC.find(z=>z.id===id);
+
+/* ============================================================
+   生肖圖示：直接使用靜態 Emoji（不使用動畫或自繪 SVG）
+   ============================================================ */
+function zodiacIconSVG(id, extraClass){
+  const z = zById(id);
+  return `<span class="zodiac-emoji ${extraClass||''}">${z ? z.emoji : ''}</span>`;
+}
+
+/* ============================================================
+   應用程式狀態（起始畫面 / 大廳）
+   ============================================================ */
+let appState = { started:false };
+
+/* ============================================================
+   音效（Web Audio API 即時合成）與背景音樂（讀取同資料夾 MP3 檔）
+   ============================================================ */
+const AudioEngine = (function(){
+  let ctx = null;
+  let sfxGain = null;
+  const settings = { musicOn:true, sfxOn:true, musicVol:0.35, sfxVol:0.6 };
+
+  /* ---- 背景音樂：MP3 檔案（與本 HTML 放在同一個資料夾） ---- */
+  const MUSIC_FILES = { lobby: './lobby.mp3', game: './game.mp3' };
+  const musicEls = {};
+  Object.keys(MUSIC_FILES).forEach(key=>{
+    const a = new Audio(MUSIC_FILES[key]);
+    a.loop = true;
+    a.preload = 'auto';
+    a.volume = 0;
+    musicEls[key] = a;
+  });
+  let currentTrack = null;      // 目前播放中的曲目 key（'lobby' / 'game' / null）
+  let fadeTimers = {};          // 各曲目各自的淡入淡出計時器
+
+  function clearFade(key){
+    if(fadeTimers[key]){ clearInterval(fadeTimers[key]); fadeTimers[key]=null; }
+  }
+  function fadeTo(key, targetVol, ms){
+    const el = musicEls[key];
+    if(!el) return;
+    clearFade(key);
+    const steps = 20;
+    const stepMs = Math.max(16, ms/steps);
+    const startVol = el.volume;
+    const diff = targetVol - startVol;
+    if(diff===0) return;
+    let i=0;
+    fadeTimers[key] = setInterval(()=>{
+      i++;
+      const v = startVol + diff*(i/steps);
+      el.volume = Math.max(0, Math.min(1, v));
+      if(i>=steps){
+        clearFade(key);
+        el.volume = Math.max(0, Math.min(1, targetVol));
+        if(targetVol<=0.0001) el.pause();
+      }
+    }, stepMs);
+  }
+  // 切換／播放指定曲目：淡出目前曲目、淡入目標曲目（前者與後者不同時才切換）
+  function playMusicTrack(key){
+    if(!MUSIC_FILES[key]) return;
+    if(!settings.musicOn){ currentTrack = key; return; }
+    if(currentTrack===key){
+      // 同一首曲子，僅確保音量與播放狀態正確
+      const el = musicEls[key];
+      if(el && el.paused){ el.play().catch(()=>{}); }
+      fadeTo(key, settings.musicVol, 300);
+      return;
+    }
+    const prevTrack = currentTrack;
+    currentTrack = key;
+    const el = musicEls[key];
+    if(el){
+      el.currentTime = el.currentTime || 0;
+      el.play().catch(()=>{});
+      fadeTo(key, settings.musicVol, 700);
+    }
+    if(prevTrack && musicEls[prevTrack]){
+      fadeTo(prevTrack, 0, 700);
+    }
+  }
+  function stopAllMusic(){
+    Object.keys(musicEls).forEach(key=>{ fadeTo(key, 0, 400); });
+  }
+
+  function loadSettings(){
+    try{
+      const raw = localStorage.getItem('zodiacGameAudioSettings');
+      if(raw) Object.assign(settings, JSON.parse(raw));
+    }catch(e){}
+  }
+  function saveSettings(){
+    try{ localStorage.setItem('zodiacGameAudioSettings', JSON.stringify(settings)); }catch(e){}
+  }
+  loadSettings();
+
+  function ensureCtx(){
+    if(ctx){ if(ctx.state==='suspended') ctx.resume(); return; }
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return;
+    ctx = new AC();
+    sfxGain = ctx.createGain();
+    sfxGain.gain.value = settings.sfxOn ? settings.sfxVol : 0;
+    sfxGain.connect(ctx.destination);
+  }
+
+  function playTone(freq, startAt, dur, type, gainNode, peak){
+    if(!ctx || !gainNode) return;
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = type || 'sine';
+    osc.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, startAt);
+    g.gain.linearRampToValueAtTime(peak==null?0.9:peak, startAt+0.015);
+    g.gain.exponentialRampToValueAtTime(0.001, startAt+dur);
+    osc.connect(g); g.connect(gainNode);
+    osc.start(startAt); osc.stop(startAt+dur+0.05);
+  }
+
+  const SFX = {
+    click:   [[880,0,.07,'sine',.5]],
+    play:    [[520,0,.12,'sawtooth',.5],[780,.05,.12,'sine',.4]],
+    draw:    [[440,0,.08,'sine',.5],[660,.06,.1,'sine',.45]],
+    collect: [[523,0,.1,'triangle',.55],[659,.08,.1,'triangle',.5],[784,.16,.14,'triangle',.55]],
+    error:   [[220,0,.16,'square',.4],[180,.08,.18,'square',.35]],
+    confirm: [[523,0,.1,'sine',.6],[784,.08,.16,'sine',.55]],
+    win:     [[523,0,.15,'triangle',.6],[659,.13,.15,'triangle',.6],[784,.26,.15,'triangle',.6],[1047,.39,.35,'triangle',.65]]
+  };
+  function sfx(name){
+    if(!ctx || !settings.sfxOn) return;
+    const notes = SFX[name] || SFX.click;
+    const now = ctx.currentTime;
+    notes.forEach(([freq,delay,dur,type,peak])=>{
+      playTone(freq, now+delay, dur, type, sfxGain, peak);
+    });
+  }
+
+  // 背景音樂：播放指定曲目（'lobby' 大廳 / 'game' 遊戲內），未指定時延續目前曲目（預設大廳）
+  function startMusic(track){
+    ensureCtx();
+    const key = track || currentTrack || 'lobby';
+    playMusicTrack(key);
+  }
+  function stopMusic(){
+    currentTrack = null;
+    stopAllMusic();
+  }
+  function setMusicOn(on){
+    settings.musicOn = on;
+    if(on){
+      startMusic(currentTrack || 'lobby');
+    } else {
+      stopAllMusic();
+    }
+    saveSettings();
+  }
+  function setSfxOn(on){
+    settings.sfxOn = on;
+    if(sfxGain) sfxGain.gain.value = on ? settings.sfxVol : 0;
+    saveSettings();
+  }
+  function setMusicVol(v){
+    settings.musicVol = v;
+    if(settings.musicOn && currentTrack && musicEls[currentTrack] && !musicEls[currentTrack].paused){
+      clearFade(currentTrack);
+      musicEls[currentTrack].volume = v;
+    }
+    saveSettings();
+  }
+  function setSfxVol(v){
+    settings.sfxVol = v;
+    if(sfxGain && settings.sfxOn) sfxGain.gain.value = v;
+    saveSettings();
+  }
+
+  return { ensureCtx, sfx, startMusic, stopMusic, settings, setMusicOn, setSfxOn, setMusicVol, setSfxVol };
+})();
+
+let uidCounter = 1;
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+function freshDeck(playerCount){
+  // 2～3 人遊玩：每個生肖 4 張（共 48 張）；4～5 人遊玩：每個生肖 8 張（共 96 張）
+  const copies = (playerCount||3) <= 3 ? 4 : 8;
+  const deck=[];
+  ZODIAC.forEach(z=>{
+    for(let i=0;i<copies;i++) deck.push({uid:uidCounter++, zodiacId:z.id});
+  });
+  return shuffle(deck);
+}
+
+/* ============================================================
+   遊戲狀態
+   ============================================================ */
+let G = null; // global game state
+let selectedHandUids = [];
+
+function initGame(names, types, difficulties){
+  AudioEngine.startMusic('game');
+  types = types || names.map(()=>'human');
+  difficulties = difficulties || names.map(()=>'normal');
+  G = {
+    players: names.map((n,i)=>({
+      name:n, hand:[], field:[], collection:new Set(),
+      isAI: types[i]==='ai',
+      difficulty: types[i]==='ai' ? (difficulties[i]||'normal') : null,
+      stats:{ turns:0, played:0, collected:0, drawn:0, takenFromOthers:0, lostToOthers:0, collectStreak:0, bestCollectStreak:0 },
+      _turnActionType:null
+    })),
+    deck: freshDeck(names.length),
+    discard: [],
+    current: 0,
+    log: [],
+    phase: 'clear', // clear -> action -> passing -> over
+    over:false,
+    winner:null,
+    pendingReveal:true, // require "reveal my hand" tap (human) before showing board
+    aiTurnScheduled:false
+  };
+  // deal 10 each
+  G.players.forEach(p=>{
+    for(let i=0;i<10;i++) p.hand.push(G.deck.pop());
+  });
+  const aiPlayers = G.players.filter(p=>p.isAI);
+  const diffSummary = aiPlayers.length
+    ? `AI 難度 — ${aiPlayers.map(p=>`${p.name}：${difficultyLabel(p.difficulty)}`).join('、')}。`
+    : '';
+  const totalCards = names.length<=3 ? 48 : 96;
+  addLog(`遊戲開始！共 ${names.length} 位玩家，使用 ${totalCards} 張生肖牌，每人抽取 10 張手牌。${diffSummary}`);
+  render();
+}
+
+function difficultyLabel(d){
+  return d==='easy' ? '簡單' : d==='hard' ? '困難' : '中等';
+}
+
+function addLog(msg){
+  G.log.push(msg);
+  if(G.log.length>60) G.log.shift();
+}
+
+function drawCard(){
+  if(G.deck.length===0){
+    if(G.discard.length===0) return null;
+    G.deck = shuffle(G.discard.splice(0));
+    addLog('牌庫用盡，棄牌區重新混洗成新牌庫。');
+  }
+  return G.deck.pop();
+}
+
+function ratBlocking(){
+  return G.players.some(p=>p.field.some(c=>c.zodiacId===1));
+}
+
+function reactToEffect(actor, targets){
+  // ox & tiger passive reactions for each affected target (excluding actor)
+  targets.forEach(t=>{
+    if(t===actor) return;
+    if(t.field.some(c=>c.zodiacId===2)){
+      const c1=drawCard(), c2=drawCard();
+      if(c1) t.hand.push(c1);
+      if(c2) t.hand.push(c2);
+      t.stats.drawn += (c1?1:0)+(c2?1:0);
+      addLog(`🐂 ${t.name} 持有牛，被影響後從牌庫多抽兩張。`);
+    }
+    if(t.field.some(c=>c.zodiacId===3) && actor.hand.length>0){
+      const idx = Math.floor(Math.random()*actor.hand.length);
+      const stolen = actor.hand.splice(idx,1)[0];
+      t.hand.push(stolen);
+      t.stats.takenFromOthers += 1;
+      actor.stats.lostToOthers += 1;
+      addLog(`🐯 ${t.name} 持有虎，從 ${actor.name} 手中抽走一張牌。`);
+    }
+  });
+}
+
+function enforceHandLimit(player, cb){
+  if(player.hand.length<=10){ cb&&cb(); return; }
+  if(player.isAI){ aiAutoDiscard(player); cb&&cb(); return; }
+  openDiscardExcessModal(player, cb);
+}
+
+function aiAutoDiscard(player){
+  const overflow = player.hand.length-10;
+  const diff = player.difficulty || 'normal';
+  let toDiscard;
+  if(diff==='easy'){
+    // 簡單難度：隨機棄牌，不特別判斷是否對收集有用
+    toDiscard = shuffle(player.hand.slice()).slice(0, overflow);
+  } else {
+    const min = player.collection.size? Math.min(...player.collection) : null;
+    const max = player.collection.size? Math.max(...player.collection) : null;
+    const usefulness = (c)=> (min!==null && (c.zodiacId===min-1 || c.zodiacId===max+1)) ? 2 : 1;
+    const sorted = player.hand.slice().sort((a,b)=>usefulness(a)-usefulness(b));
+    toDiscard = sorted.slice(0, overflow);
+  }
+  const discardUids = new Set(toDiscard.map(c=>c.uid));
+  player.hand = player.hand.filter(c=>!discardUids.has(c.uid));
+  G.discard.push(...toDiscard);
+  addLog(`${player.name}（AI）棄置了 ${overflow} 張超額手牌。`);
+}
+
+/* ============================================================
+   渲染：路由
+   ============================================================ */
+function needsPassScreen(){
+  // 場上只有一位真人玩家（其餘皆為 AI）時，沒有其他真人需要防窺，可略過換人畫面
+  return G.players.filter(p=>!p.isAI).length > 1;
+}
+
+/* 畫面轉場：同一種畫面內的局部更新（例如選牌）不套動畫，避免頻繁閃爍；
+   只有畫面「種類」真的切換時（setup／board／pass／ai-thinking／winner）才播放淡入淡出＋滑動效果 */
+let currentScreenKey = null;
+let screenTransitionTimer = null;
+function setScreen(html, key, afterInsert){
+  const app = document.getElementById('app');
+  const changed = key !== currentScreenKey;
+  currentScreenKey = key;
+
+  if(screenTransitionTimer){ clearTimeout(screenTransitionTimer); screenTransitionTimer = null; }
+
+  const insert = ()=>{
+    app.innerHTML = changed ? `<div class="screen-enter">${html}</div>` : html;
+    afterInsert && afterInsert();
+    syncFullscreenUI();
+  };
+
+  if(changed && app.firstElementChild){
+    app.firstElementChild.classList.add('screen-exit');
+    screenTransitionTimer = setTimeout(()=>{ screenTransitionTimer=null; insert(); }, 170);
+  } else {
+    insert();
+  }
+}
+
+function render(){
+  if(!appState.started){ setScreen(renderStartScreen(), 'start', ()=>{ bindStartScreen(); }); return; }
+  if(!G){ setScreen(renderSetup(), 'setup', ()=>{ bindSetup(); }); return; }
+  if(G.over){ setScreen(renderWinner(), 'winner', ()=>{ bindWinner(); }); return; }
+  if(G.pendingReveal){
+    const cur = G.players[G.current];
+    if(cur.isAI){ setScreen(renderAIThinking(cur), 'ai-thinking', ()=>{ bindAIThinking(); triggerAITurn(); scrollLogToBottom(); }); return; }
+    if(!needsPassScreen()){ G.pendingReveal=false; startTurnClearPhase(); setScreen(renderBoard(), 'board', ()=>{ bindBoard(); scrollLogToBottom(); }); return; }
+    setScreen(renderPassScreen(), 'pass', ()=>{ bindPass(); scrollLogToBottom(); }); return;
+  }
+  setScreen(renderBoard(), 'board', ()=>{ bindBoard(); scrollLogToBottom(); });
+}
+
+/* ============================================================
+   全螢幕控制：一鍵切換 + 偵測狀態自動調整版面
+   ============================================================ */
+function isFullscreen(){
+  return !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
+}
+function toggleFullscreen(){
+  const el = document.documentElement;
+  if(!isFullscreen()){
+    const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+    if(req) req.call(el).catch(()=>{});
+  } else {
+    const exit = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+    if(exit) exit.call(document);
+  }
+}
+function syncFullscreenUI(){
+  const active = isFullscreen();
+  document.body.classList.toggle('is-fullscreen', active);
+  document.querySelectorAll('.fs-btn').forEach(b=>{
+    b.textContent = active ? '⤢' : '⛶';
+    b.title = active ? '退出全螢幕' : '進入全螢幕';
+  });
+}
+['fullscreenchange','webkitfullscreenchange','msfullscreenchange'].forEach(evt=>{
+  document.addEventListener(evt, syncFullscreenUI);
+});
+
+/* ============================================================
+   直向／橫向偵測：橫式手機自動壓縮版面並顯示提示
+   ============================================================ */
+let orientHintDismissed = false;
+function checkOrientation(){
+  const shortSide = Math.min(window.innerWidth, window.innerHeight);
+  const isLandscape = window.matchMedia('(orientation: landscape)').matches;
+  const isPhoneSized = shortSide < 500; // 排除平板／桌機的橫向情況
+  const landscapePhone = isLandscape && isPhoneSized;
+  document.body.classList.toggle('is-landscape-phone', landscapePhone);
+  document.body.classList.toggle('show-orient-hint', landscapePhone && !orientHintDismissed);
+}
+window.addEventListener('resize', checkOrientation);
+window.addEventListener('orientationchange', checkOrientation);
+document.addEventListener('DOMContentLoaded', checkOrientation);
+checkOrientation();
+document.addEventListener('DOMContentLoaded', ()=>{
+  const closeBtn = document.getElementById('orientHintClose');
+  if(closeBtn){
+    closeBtn.onclick = ()=>{
+      orientHintDismissed = true;
+      document.body.classList.remove('show-orient-hint');
+    };
+  }
+});
+
+function scrollLogToBottom(){
+  document.querySelectorAll('.log-panel').forEach(el=>{ el.scrollTop = el.scrollHeight; });
+}
+
+
+/* ---------------- 起始畫面 ---------------- */
+function renderStartScreen(){
+  return `
+  <div class="start-screen">
+    <div class="seal-badge big"><span>肖</span></div>
+    <h1 class="brush">生肖牌</h1>
+    <div class="sub">十二生肖 · 收集戰</div>
+    <p class="start-desc">點擊下方按鈕開啟背景音樂與音效，並自動進入全螢幕、來到遊戲大廳。若目前不方便有聲音，也可以選擇靜音進入。</p>
+    <button class="btn primary start-btn" id="enterWithSoundBtn">🔔 點擊開始</button>
+    <div class="start-hint" id="muteEnterBtn">靜音進入遊戲大廳 →</div>
+  </div>`;
+}
+function tryAutoFullscreen(){
+  // 全螢幕 API 必須在使用者手勢中呼叫，因此僅能於起始畫面的點擊事件內觸發
+  if(!isFullscreen()) toggleFullscreen();
+}
+function bindStartScreen(){
+  document.getElementById('enterWithSoundBtn').onclick=()=>{
+    AudioEngine.ensureCtx();
+    AudioEngine.setMusicOn(AudioEngine.settings.musicOn);
+    AudioEngine.setSfxOn(AudioEngine.settings.sfxOn);
+    AudioEngine.startMusic('lobby');
+    AudioEngine.sfx('confirm');
+    tryAutoFullscreen();
+    appState.started = true;
+    render();
+  };
+  document.getElementById('muteEnterBtn').onclick=()=>{
+    AudioEngine.ensureCtx();
+    AudioEngine.setMusicOn(false);
+    AudioEngine.setSfxOn(false);
+    tryAutoFullscreen();
+    appState.started = true;
+    render();
+  };
+}
+
+/* ---------------- setup screen（遊戲大廳） ---------------- */
+let setupCount = 3;
+let setupTypes = ['human','human','human','human','human'];
+let setupNames = [null,null,null,null,null];
+let setupDifficulties = ['normal','normal','normal','normal','normal'];
+function captureSetupNames(){
+  for(let i=0;i<setupCount;i++){
+    const el = document.getElementById('pname'+i);
+    if(el) setupNames[i]=el.value;
+  }
+}
+function renderSetup(){
+  let fields='';
+  for(let i=0;i<setupCount;i++){
+    const t = setupTypes[i]||'human';
+    const defaultName = t==='ai' ? `電腦${i+1}` : `玩家${i+1}`;
+    const val = setupNames[i]!=null ? setupNames[i] : defaultName;
+    const d = setupDifficulties[i]||'normal';
+    const diffRow = t==='ai' ? `
+      <div style="display:flex;align-items:center;gap:10px;margin:2px 0 14px 40px;flex-wrap:wrap;">
+        <span style="font-size:12px;color:#8a7a5c;">難度</span>
+        <div class="type-toggle">
+          <button class="type-btn" data-diff-idx="${i}" data-diff="easy" style="padding:6px 11px;font-size:11px;${d==='easy'?'background:var(--seal);color:#fff;':''}">簡單</button>
+          <button class="type-btn" data-diff-idx="${i}" data-diff="normal" style="padding:6px 11px;font-size:11px;${d==='normal'?'background:var(--seal);color:#fff;':''}">中等</button>
+          <button class="type-btn" data-diff-idx="${i}" data-diff="hard" style="padding:6px 11px;font-size:11px;${d==='hard'?'background:var(--seal);color:#fff;':''}">困難</button>
+        </div>
+      </div>` : '';
+    fields += `<div class="field-row"><div class="seal-num">${i+1}</div>
+      <input type="text" id="pname${i}" placeholder="玩家 ${i+1} 名稱" value="${val}">
+      <div class="type-toggle" data-idx="${i}">
+        <button class="type-btn ${t==='human'?'active':''}" data-idx="${i}" data-type="human">真人</button>
+        <button class="type-btn ${t==='ai'?'active':''}" data-idx="${i}" data-type="ai">AI</button>
+      </div></div>${diffRow}`;
+  }
+  return `
+  <header class="top">
+    <div class="title">
+      <div class="seal-badge"><span>肖</span></div>
+      <div><h1>生肖牌</h1><div class="sub">十二生肖 · 收集戰</div></div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn fs-btn" onclick="toggleFullscreen()" title="進入全螢幕">⛶</button>
+      <button class="icon-btn" onclick="openAudioSettings()">⚙️ 設定</button>
+    </div>
+  </header>
+  <div class="panel">
+    <h3 style="margin-top:0;">遊戲大廳</h3>
+    <p style="font-size:13px;color:#6b5c40;margin-bottom:6px;">先選擇一種遊戲模式快速套用設定，或直接在下方自訂每位玩家。</p>
+    <div class="mode-grid" id="modeGrid">
+      <div class="mode-card" data-mode="solo3">
+        <div class="mode-emoji">🀄</div>
+        <div class="mode-title">標準對局</div>
+        <div class="mode-desc">1 位真人 ＋ 2 位中等 AI，最快上手的三人局。</div>
+      </div>
+      <div class="mode-card" data-mode="duel">
+        <div class="mode-emoji">⚔️</div>
+        <div class="mode-title">單挑 AI</div>
+        <div class="mode-desc">1 位真人 ＋ 1 位困難 AI，一對一硬碰硬。</div>
+      </div>
+      <div class="mode-card" data-mode="party">
+        <div class="mode-emoji">👥</div>
+        <div class="mode-title">面對面多人</div>
+        <div class="mode-desc">4 位真人輪流傳裝置，適合聚會同樂。</div>
+      </div>
+      <div class="mode-card" data-mode="spectate">
+        <div class="mode-emoji">🤖</div>
+        <div class="mode-title">AI 觀戰</div>
+        <div class="mode-desc">3 位 AI 互相對戰，手牌全公開，坐著看牌局。</div>
+      </div>
+    </div>
+  </div>
+  <div class="panel">
+    <h3 style="margin-top:0;">自訂新局</h3>
+    <p style="font-size:13px;color:#6b5c40;">選擇同桌人數，為每位玩家設定名稱與類型後開局。2–3 人遊玩使用 48 張生肖牌（每個生肖 4 張）；4–5 人遊玩使用 96 張生肖牌（每個生肖 8 張），目前設定為 <b>${setupCount<=3?'48':'96'} 張</b>。真人玩家以「傳裝置」輪流遊玩；AI 玩家會自動思考後出牌，且每位 AI 可各自設定不同難度（簡單 1 秒／中等 3 秒／困難 5 秒思考時間），同一局裡可以混搭。若所有玩家都設為 AI，將進入觀戰模式，此時每位 AI 的手牌會直接公開顯示，方便你觀看整場對局。</p>
+    <div class="count-toggle" id="countToggle">
+      ${[2,3,4,5].map(n=>`<button data-n="${n}" class="${n===setupCount?'active':''}">${n}</button>`).join('')}
+    </div>
+    <div id="nameFields">${fields}</div>
+    <div class="btn-row">
+      <button class="btn primary" id="startBtn">開始遊戲</button>
+    </div>
+  </div>
+  <footer class="credit">遊戲設計：林傑森　數位化重製 · 授權圖庫原作：rawpixel.com / freepik / callmetak</footer>
+  `;
+}
+function bindSetup(){
+  document.querySelectorAll('.mode-card').forEach(el=>{
+    el.onclick=()=>{
+      const mode = el.dataset.mode;
+      setupNames = [null,null,null,null,null];
+      if(mode==='solo3'){
+        setupCount=3; setupTypes=['human','ai','ai','human','human']; setupDifficulties=['normal','normal','normal','normal','normal'];
+      } else if(mode==='duel'){
+        setupCount=2; setupTypes=['human','ai','human','human','human']; setupDifficulties=['normal','hard','normal','normal','normal'];
+      } else if(mode==='party'){
+        setupCount=4; setupTypes=['human','human','human','human','human']; setupDifficulties=['normal','normal','normal','normal','normal'];
+      } else if(mode==='spectate'){
+        setupCount=3; setupTypes=['ai','ai','ai','human','human']; setupDifficulties=['normal','normal','normal','normal','normal'];
+      }
+      render();
+    };
+  });
+  document.querySelectorAll('#countToggle button').forEach(b=>{
+    b.onclick=()=>{ captureSetupNames(); setupCount=parseInt(b.dataset.n); render(); };
+  });
+  document.querySelectorAll('.type-btn[data-type]').forEach(b=>{
+    b.onclick=()=>{
+      captureSetupNames();
+      const idx = parseInt(b.dataset.idx);
+      const prevType = setupTypes[idx];
+      const newType = b.dataset.type;
+      // if name still matches the previous default, refresh to new default
+      const prevDefault = prevType==='ai' ? `電腦${idx+1}` : `玩家${idx+1}`;
+      if(setupNames[idx]==null || setupNames[idx]===prevDefault || setupNames[idx]===''){
+        setupNames[idx]=null;
+      }
+      setupTypes[idx]=newType;
+      render();
+    };
+  });
+  document.querySelectorAll('.type-btn[data-diff]').forEach(b=>{
+    b.onclick=()=>{
+      captureSetupNames();
+      const idx = parseInt(b.dataset.diffIdx);
+      setupDifficulties[idx]=b.dataset.diff;
+      render();
+    };
+  });
+  document.getElementById('startBtn').onclick=()=>{
+    const names=[]; const types=[]; const diffs=[];
+    for(let i=0;i<setupCount;i++){
+      const v = document.getElementById('pname'+i).value.trim();
+      names.push(v || ('玩家'+(i+1)));
+      types.push(setupTypes[i]||'human');
+      diffs.push(setupDifficulties[i]||'normal');
+    }
+    AudioEngine.sfx('confirm');
+    initGame(names, types, diffs);
+  };
+}
+
+/* ---------------- shared public board (visible to everyone, hand excluded) ---------------- */
+function isSpectatorMode(){
+  return G.players.every(p=>p.isAI);
+}
+
+function renderPublicBoard(){
+  const spectator = isSpectatorMode();
+  const oppHtml = G.players.map((p,i)=>{
+    const isMe = i===G.current;
+    const handPreview = spectator
+      ? `<div class="mini-field" style="margin-top:8px;">${
+          p.hand.length
+            ? p.hand.slice().sort((a,b)=>a.zodiacId-b.zodiacId).map(c=>renderCard(c,'tiny',false)).join('')
+            : '<span style="font-size:11px;color:#a0916f;">手牌已空</span>'
+        }</div>`
+      : '';
+    const isThinking = isMe && p.isAI && !!G.pendingReveal;
+    const diffTag = p.isAI ? `<span style="font-size:9px;font-weight:400;color:#8a7a5c;">（${difficultyLabel(p.difficulty)}）${isThinking?`思考中<span class="spinner-inline"></span>`:''}</span>` : '';
+    return `<div class="opp-card ${isMe?'active':''}">
+      <div class="opp-name">${p.name}${p.isAI?' 🤖':''}${diffTag} ${(isMe && !isThinking)?'<span class="turn-tag">本回合</span>':''}</div>
+      <div class="opp-meta"><span>🂠 手牌 ${p.hand.length}</span><span>📚 收集 ${p.collection.size}/12</span></div>
+      <div class="mini-field">${p.field.map(c=>`<div class="mini-chip" data-zinfo="${c.zodiacId}" title="${zById(c.zodiacId).name}（點擊查看能力）" style="cursor:pointer;">${zodiacIconSVG(c.zodiacId)}</div>`).join('') || '<span style="font-size:11px;color:#a0916f;">場上無牌</span>'}</div>
+      ${spectator? `<div style="font-size:10px;color:#8a7a5c;margin-top:8px;letter-spacing:1px;">手牌（觀戰模式公開）</div>${handPreview}` : ''}
+      <div class="mini-collect" data-collect-idx="${i}" title="點擊查看收集詳情">${renderCollectionDots(p.collection)}</div>
+    </div>`;
+  }).join('');
+
+  return `
+  <div class="opponents">${oppHtml}</div>
+  <div class="table">
+    <div class="table-row">
+      <div class="deck-pile">
+        <div><div class="pile">牌庫<br>${G.deck.length}</div><div class="pile-label">牌庫</div></div>
+        <div><div class="pile discard">棄牌<br>${G.discard.length}</div><div class="pile-label">棄牌區</div></div>
+      </div>
+      <div style="text-align:right;">目標：先收集齊 12 生肖獲勝</div>
+    </div>
+  </div>
+  <div class="log-panel">${G.log.slice(-8).map(l=>`<div class="entry">${l}</div>`).join('')}</div>
+  <p class="helper-note" style="margin-bottom:14px;">${spectator? '本局所有玩家皆為 AI，屬於觀戰模式，因此每位玩家的手牌都會公開顯示給觀眾。' : '場上生肖牌與收集區對所有人公開可見，只有手牌是隱藏的。'}</p>
+  `;
+}
+function bindPublicBoard(){
+  document.querySelectorAll('[data-collect-idx]').forEach(el=>{
+    el.onclick=(e)=>{
+      e.stopPropagation();
+      const idx = parseInt(el.dataset.collectIdx);
+      openCollectionModal(G.players[idx]);
+    };
+  });
+}
+
+/* ---------------- pass screen ---------------- */
+function renderPassScreen(){
+  const p = G.players[G.current];
+  const isFirstEver = G.log.length<=1;
+  return `
+  <header class="top">
+    <div class="title">
+      <div class="seal-badge"><span>肖</span></div>
+      <div><h1>生肖牌</h1><div class="sub">換 ${p.name} 上場</div></div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn fs-btn" onclick="toggleFullscreen()" title="進入全螢幕">⛶</button>
+      <button class="icon-btn" onclick="openAudioSettings()">⚙️</button>
+      <button class="icon-btn" onclick="confirmReturnToLobby()">返回大廳</button>
+    </div>
+  </header>
+  ${renderPublicBoard()}
+  <div class="pass-screen" style="padding:30px 20px;">
+    <p>請將裝置交給 ${p.name}，確認手牌不被其他人看見後點擊繼續。</p>
+    <button class="btn primary" id="revealBtn">我是 ${p.name}，查看手牌並開始行動</button>
+    <div class="helper-note">${isFirstEver? '第一輪沒有需要收回的生肖牌，可直接選擇行動。':''}</div>
+  </div>`;
+}
+function bindPass(){
+  bindPublicBoard();
+  document.getElementById('revealBtn').onclick=()=>{
+    G.pendingReveal=false;
+    startTurnClearPhase();
+    render();
+  };
+}
+
+function renderAIThinking(p){
+  return `
+  <header class="top">
+    <div class="title">
+      <div class="seal-badge"><span>肖</span></div>
+      <div><h1>生肖牌</h1><div class="sub">AI 思考中，請稍候…</div></div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn fs-btn" onclick="toggleFullscreen()" title="進入全螢幕">⛶</button>
+      <button class="icon-btn" onclick="openAudioSettings()">⚙️</button>
+      <button class="icon-btn" onclick="confirmReturnToLobby()">返回大廳</button>
+    </div>
+  </header>
+  ${renderPublicBoard()}`;
+}
+function bindAIThinking(){
+  bindPublicBoard();
+}
+
+function triggerAITurn(){
+  if(G.aiTurnScheduled) return;
+  G.aiTurnScheduled = true;
+  const diff = G.players[G.current].difficulty || 'normal';
+  const delay = diff==='easy' ? 1000 : diff==='hard' ? 5000 : 3000;
+  setTimeout(()=>{
+    if(!G || G.over) return;
+    G.aiTurnScheduled = false;
+    G.pendingReveal = false;
+    startTurnClearPhase();
+    aiPlayTurn(G.players[G.current]);
+  }, delay);
+}
+
+function startTurnClearPhase(){
+  const p = G.players[G.current];
+  p.stats.turns += 1;
+  if(p.field.length>0){
+    addLog(`${p.name} 將面前的生肖牌收回棄牌區：${p.field.map(c=>zById(c.zodiacId).name).join('、')}`);
+    G.discard.push(...p.field);
+    p.field=[];
+  }
+  G.phase='action';
+}
+
+/* ---------------- board ---------------- */
+function renderBoard(){
+  const me = G.players[G.current];
+  const opponents = G.players.filter((p,i)=>i!==G.current);
+
+  const handHtml = me.hand
+    .slice()
+    .sort((a,b)=>a.zodiacId-b.zodiacId)
+    .map(c=>renderCard(c,'',selectedHandUids.includes(c.uid))).join('');
+
+  const canCollect = getCollectableHint(me);
+  const canTakeField = opponents.some(o=>o.field.length>0);
+
+  return `
+  <header class="top">
+    <div class="title">
+      <div class="seal-badge"><span>肖</span></div>
+      <div><h1>生肖牌</h1><div class="sub">${me.name} 的回合</div></div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn fs-btn" onclick="toggleFullscreen()" title="進入全螢幕">⛶</button>
+      <button class="icon-btn" onclick="openAudioSettings()">⚙️</button>
+      <button class="icon-btn" onclick="confirmReturnToLobby()">返回大廳</button>
+    </div>
+  </header>
+
+  ${renderPublicBoard()}
+
+  <div class="action-bar">
+    <button class="action-btn" id="actPlay" ${me.hand.length===0?'disabled':''}>A. 打出生肖<small>發動能力</small></button>
+    <button class="action-btn" id="actCollect" ${!canCollect?'disabled':''}>B. 收集序列<small>放入收集區</small></button>
+    <button class="action-btn" id="actDraw">C. 抽兩張牌<small>從牌庫</small></button>
+    <button class="action-btn" id="actTake" ${!canTakeField?'disabled':''}>D. 拿取場上牌<small>對手發動中的牌</small></button>
+  </div>
+
+  <div class="hand-section">
+    <h3>我的手牌（${me.hand.length}/10）— 點選卡牌以選取，再按上方行動</h3>
+    <div class="hand-row" id="handRow">${handHtml || '<span style="color:#a0916f;font-size:13px;">手牌已空</span>'}</div>
+  </div>
+
+  <footer class="credit">生肖牌 · 十二生肖收集戰 — 遊戲設計：林傑森　數位化重製</footer>
+  `;
+}
+
+function renderCollectionDots(set){
+  let html='';
+  for(let i=1;i<=12;i++){
+    html+=`<div class="mini-dot ${set.has(i)?'on':''}" title="${zById(i).name}">${i}</div>`;
+  }
+  return html;
+}
+
+function renderCard(card, extraClass, selected){
+  const z = zById(card.zodiacId);
+  return `<div class="card ${extraClass} ${selected?'selected':''}" data-uid="${card.uid}">
+    <div class="card-info-btn" data-zinfo="${z.id}" title="查看能力">ⓘ</div>
+    <div class="num">${String(z.id).padStart(2,'0')}</div>
+    <div class="emoji">${zodiacIconSVG(z.id)}</div>
+    <div class="zname">${z.name}</div>
+  </div>`;
+}
+
+/* ============================================================
+   點擊卡牌上的 ⓘ 圖示，查看該生肖的能力說明（事件委派，
+   適用於所有畫面上的卡牌，包含手牌、場上、收集區彈窗等）
+   ============================================================ */
+function showZodiacInfo(id){
+  const z = zById(id);
+  const old = document.getElementById('zodiacInfoOverlay');
+  if(old) old.remove();
+  const div = document.createElement('div');
+  div.className='modal-overlay';
+  div.id='zodiacInfoOverlay';
+  div.style.zIndex='80';
+  div.innerHTML = `<div class="modal-box">
+    <div class="zodiac-info-header">
+      <div class="emoji">${zodiacIconSVG(z.id)}</div>
+      <div>
+        <div class="zname">${z.name}</div>
+        <div class="num">生肖編號 ${String(z.id).padStart(2,'0')}</div>
+      </div>
+    </div>
+    <p class="desc" style="font-size:14px;color:var(--ink);">${z.desc}</p>
+    <div class="modal-actions"><button class="btn primary" id="closeZodiacInfoBtn">關閉</button></div>
+  </div>`;
+  document.body.appendChild(div);
+  document.getElementById('closeZodiacInfoBtn').onclick=()=>div.remove();
+  div.onclick=(e)=>{ if(e.target===div) div.remove(); };
+}
+document.addEventListener('click', function(e){
+  const btn = e.target.closest('.card-info-btn, .mini-chip[data-zinfo]');
+  if(!btn) return;
+  e.stopPropagation();
+  e.preventDefault();
+  showZodiacInfo(parseInt(btn.dataset.zinfo));
+}, true);
+
+function getCollectableHint(player){
+  // quick check: is there ANY subset of 1-3 cards in hand that could attach?
+  const ids = [...new Set(player.hand.map(c=>c.zodiacId))].filter(id=>!player.collection.has(id));
+  if(ids.length===0) return false;
+  if(player.collection.size===0) return ids.length>0;
+  const min = Math.min(...player.collection), max = Math.max(...player.collection);
+  return ids.includes(min-1) || ids.includes(max+1);
+}
+
+function bindBoard(){
+  document.querySelectorAll('[data-collect-idx]').forEach(el=>{
+    el.onclick=(e)=>{
+      e.stopPropagation();
+      const idx = parseInt(el.dataset.collectIdx);
+      openCollectionModal(G.players[idx]);
+    };
+  });
+  document.querySelectorAll('#handRow .card').forEach(el=>{
+    el.onclick=()=>{
+      const uid = parseInt(el.dataset.uid);
+      const idx = selectedHandUids.indexOf(uid);
+      if(idx>=0) selectedHandUids.splice(idx,1);
+      else selectedHandUids.push(uid);
+      render();
+    };
+  });
+  document.getElementById('actPlay').onclick = ()=>{ AudioEngine.sfx('play'); actionPlayAbility(); };
+  document.getElementById('actCollect').onclick = ()=>{ AudioEngine.sfx('collect'); actionCollect(); };
+  document.getElementById('actDraw').onclick = ()=>{ AudioEngine.sfx('draw'); actionDrawTwo(); };
+  document.getElementById('actTake').onclick = ()=>{ AudioEngine.sfx('collect'); actionTakeField(); };
+}
+
+/* ============================================================
+   行動 A：打出生肖，發動能力
+   ============================================================ */
+function actionPlayAbility(){
+  const me = G.players[G.current];
+  if(selectedHandUids.length!==1){
+    showAlert('請先在手牌中選擇「一張」要打出的生肖牌。');
+    return;
+  }
+  const uid = selectedHandUids[0];
+  const card = me.hand.find(c=>c.uid===uid);
+  selectedHandUids=[];
+  playAbilityCore(me, card, afterAction);
+}
+
+function playAbilityCore(me, card, done){
+  const idx = me.hand.findIndex(c=>c.uid===card.uid);
+  if(idx<0){ done(); return; }
+  const z = zById(card.zodiacId);
+  const blocked = ratBlocking() && z.id!==1;
+  me.hand.splice(idx,1);
+  me.field.push(card);
+  me.stats.played += 1;
+  me._turnActionType = 'play';
+  addLog(`${me.name}${me.isAI?'（AI）':''} 打出【${z.name}】${blocked?'（鼠在場，能力被封鎖）':''}`);
+  if(blocked){ done(); return; }
+  resolveAbility(z.id, me, done);
+}
+
+function resolveAbility(zid, me, done){
+  switch(zid){
+    case 1: // 鼠 - passive only
+      done(); break;
+    case 2: // 牛 - passive only
+      done(); break;
+    case 3: // 虎 - passive only
+      done(); break;
+    case 4: // 兔 - swap hands with target
+      chooseTargetPlayer(me, '兔：選擇要交換全部手牌的玩家', (target)=>{
+        const tmp = me.hand; me.hand = target.hand; target.hand = tmp;
+        addLog(`🐇 ${me.name} 與 ${target.name} 交換了全部手牌。`);
+        reactToEffect(me,[target]);
+        enforceHandLimit(me, ()=> enforceHandLimit(target, done));
+      });
+      break;
+    case 5: // 龍
+      chooseZodiacType(me, '龍：公開呼叫一個生肖', (ztype)=>{
+        const holders = G.players.filter(p=>p!==me && p.hand.some(c=>c.zodiacId===ztype));
+        const names = holders.map(h=>h.name);
+        const zLabel = `${String(ztype).padStart(2,'0')}．${zById(ztype).name}`;
+        addLog(`🐉 ${me.name} 呼叫【${zLabel}】！持有者：${names.length? names.join('、'):'無人持有'}（依規則不能詢問持有張數）`);
+        if(holders.length===0){ done(); return; }
+        chooseTargetPlayer(me, '龍：選擇一位玩家拿走其持有的該生肖', (target)=>{
+          const taken = target.hand.filter(c=>c.zodiacId===ztype);
+          target.hand = target.hand.filter(c=>c.zodiacId!==ztype);
+          me.hand.push(...taken);
+          me.stats.takenFromOthers += taken.length;
+          target.stats.lostToOthers += taken.length;
+          addLog(`🐉 ${me.name} 從 ${target.name} 處拿走 ${taken.length} 張【${zLabel}】。`);
+          reactToEffect(me,[target]);
+          enforceHandLimit(me, done);
+        }, holders);
+      });
+      break;
+    case 6: // 蛇 - shuffle own hand back, redraw same amount
+      {
+        const n = me.hand.length;
+        G.deck.push(...me.hand);
+        shuffle(G.deck);
+        me.hand=[];
+        for(let i=0;i<n;i++){ const c=drawCard(); if(c) me.hand.push(c); }
+        addLog(`🐍 ${me.name} 將手牌洗回牌庫，重新抽取 ${n} 張。`);
+        done();
+      }
+      break;
+    case 7: // 馬 - choose direction, all players pass 3
+      chooseDirection(me, (dir)=>{
+        const n = G.players.length;
+        const order = [];
+        for(let i=0;i<n;i++) order.push((G.current + (dir==='left'? -i : i) + n*3)%n);
+        // compute passes simultaneously using snapshot
+        const takeCounts = G.players.map(p=>Math.min(3,p.hand.length));
+        const passed = G.players.map((p,i)=>{
+          const cnt = takeCounts[i];
+          const cards = p.hand.splice(0,cnt);
+          return cards;
+        });
+        for(let i=0;i<n;i++){
+          const targetIdx = dir==='left' ? (i-1+n)%n : (i+1)%n;
+          G.players[targetIdx].hand.push(...passed[i]);
+        }
+        addLog(`🐎 ${me.name} 指定所有玩家向「${dir==='left'?'左':'右'}」傳遞三張手牌。`);
+        reactToEffect(me, G.players.filter(p=>p!==me));
+        let chain = Promise.resolve();
+        G.players.forEach(p=>{ chain = chain.then(()=>new Promise(res=>enforceHandLimit(p,res))); });
+        chain.then(done);
+      });
+      break;
+    case 8: // 羊 - target returns 5 to deck bottom
+      chooseTargetPlayer(me, '羊：指定一位玩家，將五張手牌放回牌庫底', (target)=>{
+        const n = Math.min(5, target.hand.length);
+        const shuffledIdx = shuffle(target.hand.map((_,i)=>i)).slice(0,n);
+        const chosen = shuffledIdx.map(i=>target.hand[i]);
+        target.hand = target.hand.filter(c=>!chosen.includes(c));
+        G.deck.unshift(...chosen); // bottom of deck
+        addLog(`🐐 ${me.name} 命令 ${target.name} 將 ${n} 張手牌放回牌庫底。`);
+        reactToEffect(me,[target]);
+        done();
+      });
+      break;
+    case 9: // 猴 - draw 1 from each other player
+      {
+        const others = G.players.filter(p=>p!==me);
+        others.forEach(o=>{
+          if(o.hand.length>0){
+            const i = Math.floor(Math.random()*o.hand.length);
+            me.hand.push(o.hand.splice(i,1)[0]);
+            me.stats.takenFromOthers += 1;
+            o.stats.lostToOthers += 1;
+          }
+        });
+        addLog(`🐒 ${me.name} 從每位其他玩家手中各抽取一張牌。`);
+        reactToEffect(me, others);
+        enforceHandLimit(me, done);
+      }
+      break;
+    case 10: // 雞 - reveal 3 from each other player
+      {
+        const others = G.players.filter(p=>p!==me);
+        const reveals = others.map(o=>{
+          const shown = shuffle(o.hand.map((_,i)=>i)).slice(0,Math.min(3,o.hand.length)).map(i=>o.hand[i]);
+          return {player:o, cards:shown};
+        });
+        const finishRooster = ()=>{
+          addLog(`🐓 ${me.name} 查看並公開宣告了所有玩家的手牌。`);
+          reactToEffect(me, others);
+          done();
+        };
+        if(me.isAI){ finishRooster(); }
+        else { openRevealModal('🐓 雞：查看每位玩家三張手牌', reveals, finishRooster); }
+      }
+      break;
+    case 11: // 狗 - view target's whole hand
+      chooseTargetPlayer(me, '狗：指定一位玩家，查看其所有手牌', (target)=>{
+        const finishDog = ()=>{
+          addLog(`🐕 ${me.name} 查看了 ${target.name} 的全部手牌。`);
+          reactToEffect(me,[target]);
+          done();
+        };
+        if(me.isAI){ finishDog(); }
+        else { openRevealModal(`🐕 狗：${target.name} 的全部手牌`, [{player:target, cards:target.hand}], finishDog); }
+      });
+      break;
+    case 12: // 豬 - shuffle all field cards (incl. this pig) back, draw 3
+      {
+        let count=0;
+        G.players.forEach(p=>{ count+=p.field.length; G.deck.push(...p.field); p.field=[]; });
+        shuffle(G.deck);
+        for(let i=0;i<3;i++){ const c=drawCard(); if(c) me.hand.push(c); }
+        addLog(`🐖 ${me.name} 將場上 ${count} 張發動中的生肖牌洗回牌庫，並抽三張。`);
+        enforceHandLimit(me, done);
+      }
+      break;
+    default: done();
+  }
+}
+
+/* ============================================================
+   行動 B：收集序列
+   ============================================================ */
+function actionCollect(){
+  const me = G.players[G.current];
+  const res = tryCollect(me, selectedHandUids);
+  if(!res.ok){ showAlert(res.reason); return; }
+  selectedHandUids=[];
+  afterAction();
+}
+
+function tryCollect(me, uids){
+  if(uids.length<1 || uids.length>3) return {ok:false, reason:'請選擇 1 到 3 張「連續」的生肖牌放入收集區。'};
+  const cards = uids.map(uid=>me.hand.find(c=>c.uid===uid)).filter(Boolean);
+  if(cards.length!==uids.length) return {ok:false, reason:'所選卡牌不存在於手牌中。'};
+  const ids = cards.map(c=>c.zodiacId).sort((a,b)=>a-b);
+  for(let i=1;i<ids.length;i++){
+    if(ids[i]!==ids[i-1]+1) return {ok:false, reason:'所選生肖必須是連續數字（例如 一鼠、二牛、三虎）。'};
+  }
+  if(ids.some(id=>me.collection.has(id))) return {ok:false, reason:'這些生肖已經在你的收集區中。'};
+  if(me.collection.size>0){
+    const min=Math.min(...me.collection), max=Math.max(...me.collection);
+    const attachesLow = ids[ids.length-1] === min-1;
+    const attachesHigh = ids[0] === max+1;
+    if(!attachesLow && !attachesHigh){
+      return {ok:false, reason:`無法連結！你目前收集區範圍為 ${min}~${max}，新加入的生肖必須緊接在前或後。`};
+    }
+  }
+  ids.forEach(id=>me.collection.add(id));
+  me.hand = me.hand.filter(c=>!uids.includes(c.uid));
+  me.stats.collected += ids.length;
+  me._turnActionType = 'collect';
+  addLog(`${me.name}${me.isAI?'（AI）':''} 將【${ids.map(id=>zById(id).name).join('、')}】放入收集區。目前收集 ${me.collection.size}/12。`);
+  return {ok:true};
+}
+
+/* ============================================================
+   行動 C：抽兩張牌
+   ============================================================ */
+function actionDrawTwo(){
+  drawTwoCore(G.players[G.current], afterAction);
+}
+function drawTwoCore(me, done){
+  const c1=drawCard(), c2=drawCard();
+  if(c1) me.hand.push(c1);
+  if(c2) me.hand.push(c2);
+  me.stats.drawn += (c1?1:0)+(c2?1:0);
+  me._turnActionType = 'draw';
+  addLog(`${me.name}${me.isAI?'（AI）':''} 從牌庫抽了兩張牌。`);
+  enforceHandLimit(me, done);
+}
+
+/* ============================================================
+   行動 D：拿取對手場上發動中的牌
+   ============================================================ */
+function actionTakeField(){
+  const me = G.players[G.current];
+  const opponents = G.players.filter(p=>p!==me && p.field.length>0);
+  if(opponents.length===0){ showAlert('目前沒有其他玩家的場上有發動中的生肖牌。'); return; }
+  // 每位玩家場上最多同時只有一張發動中的生肖牌，因此「拿取 1–3 張」
+  // 代表可以合併選擇最多三位不同玩家場上的牌，而非只能挑同一人的牌。
+  const pool = [];
+  opponents.forEach(o=>{ o.field.forEach(c=>pool.push({card:c, owner:o})); });
+  openFieldPickModalMulti(pool, (chosen)=>{
+    chosen.forEach(({card, owner})=>{
+      owner.field = owner.field.filter(fc=>fc.uid!==card.uid);
+      me.hand.push(card);
+    });
+    me.stats.takenFromOthers += chosen.length;
+    const byOwner = {};
+    chosen.forEach(({card, owner})=>{ (byOwner[owner.name]=byOwner[owner.name]||[]).push(card); owner.stats.lostToOthers += 1; });
+    me._turnActionType = 'take';
+    const summary = Object.entries(byOwner).map(([name, cards])=>`${name}【${cards.map(c=>zById(c.zodiacId).name).join('、')}】`).join('、');
+    addLog(`${me.name} 拿走了場上牌：${summary}。`);
+    enforceHandLimit(me, afterAction);
+  });
+}
+
+/* ============================================================
+   AI 玩家邏輯
+   ============================================================ */
+function aiPlayTurn(me){
+  const diff = me.difficulty || 'normal';
+  const collectSet = aiFindBestCollectSet(me);
+  const collectChance = diff==='easy' ? 0.55 : diff==='hard' ? 1 : 0.85;
+  if(collectSet && Math.random()<collectChance){
+    tryCollect(me, collectSet);
+    afterAction();
+    return;
+  }
+  const opponentsWithField = G.players.filter(p=>p!==me && p.field.length>0);
+  const rand = Math.random();
+  const takeFieldChance = diff==='hard' ? 0.45 : diff==='easy' ? 0.2 : 0.35;
+  if(opponentsWithField.length>0 && rand<takeFieldChance){
+    aiTakeField(me, opponentsWithField, afterAction);
+    return;
+  }
+  const playChance = diff==='hard' ? 0.85 : diff==='easy' ? 0.7 : 0.8;
+  if(me.hand.length>0 && rand<playChance){
+    const card = aiChooseCardToPlay(me);
+    playAbilityCore(me, card, afterAction);
+    return;
+  }
+  drawTwoCore(me, afterAction);
+}
+
+function aiFindBestCollectSet(me){
+  const diff = me.difficulty || 'normal';
+  const maxLen = diff==='easy' ? 1 : 3; // 簡單難度的AI不太懂得一次湊齊較長的連續生肖
+  const handIdsSet = new Set(me.hand.map(c=>c.zodiacId));
+  const idToUid = (id)=> me.hand.find(c=>c.zodiacId===id).uid;
+  let best=null;
+  if(me.collection.size===0){
+    for(let start=1; start<=12; start++){
+      for(let len=maxLen; len>=1; len--){
+        if(start+len-1>12) continue;
+        let ok=true;
+        for(let k=0;k<len;k++){ if(!handIdsSet.has(start+k)){ ok=false; break; } }
+        if(ok && (!best || len>best.len)){ best={start,len}; }
+      }
+    }
+  } else {
+    const min=Math.min(...me.collection), max=Math.max(...me.collection);
+    for(let len=maxLen; len>=1; len--){
+      let ok=true;
+      for(let k=0;k<len;k++){ const id=min-len+k; if(id<1||!handIdsSet.has(id)){ ok=false; break; } }
+      if(ok){ best={start:min-len, len}; break; }
+    }
+    if(!best){
+      for(let len=maxLen; len>=1; len--){
+        let ok=true;
+        for(let k=0;k<len;k++){ const id=max+1+k; if(id>12||!handIdsSet.has(id)){ ok=false; break; } }
+        if(ok){ best={start:max+1, len}; break; }
+      }
+    }
+  }
+  if(!best) return null;
+  const uids=[];
+  for(let k=0;k<best.len;k++) uids.push(idToUid(best.start+k));
+  return uids;
+}
+
+function aiChooseCardToPlay(me){
+  const diff = me.difficulty || 'normal';
+  if(diff==='easy'){
+    return me.hand[Math.floor(Math.random()*me.hand.length)];
+  }
+  const weights = {1:0.5,2:0.7,3:0.7,4:1,5:1.3,6:0.6,7:0.9,8:1.1,9:1.2,10:0.8,11:0.8,12:0.9};
+  if(diff==='hard'){
+    // 困難難度更偏好能干擾對手或加速自身收集的強力生肖
+    weights[4]*=1.3; weights[5]*=1.4; weights[8]*=1.3; weights[9]*=1.2; weights[12]*=1.2;
+  }
+  const total = me.hand.reduce((s,c)=>s+weights[c.zodiacId],0);
+  let r = Math.random()*total;
+  for(const c of me.hand){ r -= weights[c.zodiacId]; if(r<=0) return c; }
+  return me.hand[me.hand.length-1];
+}
+
+function aiLeader(pool){
+  // 收集區範圍最大者視為目前領先者
+  return pool.reduce((a,b)=> b.collection.size>a.collection.size ? b : a);
+}
+
+function aiChooseTarget(me, pool, title){
+  if(pool.length===0) return null;
+  if(pool.length===1) return pool[0];
+  const diff = me.difficulty || 'normal';
+  if(diff==='easy'){
+    return pool[Math.floor(Math.random()*pool.length)];
+  }
+  if(title.indexOf('羊')>=0 || title.indexOf('兔')>=0){
+    return pool.reduce((a,b)=> b.hand.length>a.hand.length ? b : a);
+  }
+  if(title.indexOf('狗')>=0){
+    return pool.reduce((a,b)=> b.collection.size>a.collection.size ? b : a);
+  }
+  if(diff==='hard'){
+    // 困難難度：沒有特定規則時，優先針對目前收集進度最領先的玩家
+    return aiLeader(pool);
+  }
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+
+function aiChooseZodiacType(me){
+  const diff = me.difficulty || 'normal';
+  if(diff==='easy'){
+    return Math.floor(Math.random()*12)+1;
+  }
+  if(me.collection.size>0){
+    const min=Math.min(...me.collection), max=Math.max(...me.collection);
+    const candidates=[];
+    if(min>1) candidates.push(min-1);
+    if(max<12) candidates.push(max+1);
+    if(candidates.length) return candidates[Math.floor(Math.random()*candidates.length)];
+  }
+  return Math.floor(Math.random()*12)+1;
+}
+
+function aiTakeField(me, opponentsWithField, done){
+  const diff = me.difficulty || 'normal';
+  // 每位玩家場上最多同時只有一張牌，因此 AI 可合併選擇最多三位不同玩家的牌
+  let pool = [];
+  opponentsWithField.forEach(o=>{ o.field.forEach(c=>pool.push({card:c, owner:o})); });
+  if(diff==='easy'){
+    pool = shuffle(pool.slice());
+  } else if(diff==='hard'){
+    // 困難難度：優先拿取收集進度最領先對手的牌
+    pool.sort((a,b)=> b.owner.collection.size - a.owner.collection.size);
+  } else {
+    pool = shuffle(pool.slice());
+  }
+  const take = pool.slice(0, Math.min(3, pool.length));
+  const byOwner = {};
+  take.forEach(({card, owner})=>{
+    owner.field = owner.field.filter(fc=>fc.uid!==card.uid);
+    me.hand.push(card);
+    me.stats.takenFromOthers += 1;
+    owner.stats.lostToOthers += 1;
+    (byOwner[owner.name]=byOwner[owner.name]||[]).push(card);
+  });
+  me._turnActionType = 'take';
+  const summary = Object.entries(byOwner).map(([name, cards])=>`${name}【${cards.map(c=>zById(c.zodiacId).name).join('、')}】`).join('、');
+  addLog(`${me.name}（AI）拿走了場上牌：${summary}。`);
+  enforceHandLimit(me, done);
+}
+
+/* ============================================================
+   回合結束、勝負判定
+   ============================================================ */
+function afterAction(){
+  // 依照本回合的行動類型，更新「連續回合接牌成功」的紀錄（在勝負判定前更新，確保獲勝當回合也計入）
+  const me = G.players[G.current];
+  if(me._turnActionType === 'collect'){
+    me.stats.collectStreak = (me.stats.collectStreak||0) + 1;
+    me.stats.bestCollectStreak = Math.max(me.stats.bestCollectStreak||0, me.stats.collectStreak);
+  } else if(me._turnActionType){
+    me.stats.collectStreak = 0;
+  }
+  me._turnActionType = null;
+  checkWin();
+  if(G.over){ render(); return; }
+  // next player
+  G.current = (G.current+1) % G.players.length;
+  G.pendingReveal = true;
+  render();
+}
+
+function checkWin(){
+  const winner = G.players.find(p=>p.collection.size>=12);
+  if(winner){ G.over=true; G.winner=winner; addLog(`🎉 ${winner.name} 收集齊十二生肖，獲勝！`); AudioEngine.sfx('win'); return; }
+  const deckExhausted = G.deck.length===0 && G.discard.length===0;
+  if(deckExhausted && G.players.every(p=>p.hand.length<3)){
+    let best = G.players[0];
+    G.players.forEach(p=>{ if(p.collection.size>best.collection.size) best=p; });
+    G.over=true; G.winner=best;
+    addLog(`📜 牌庫與棄牌區皆已用盡，且玩家手牌不足三張，遊戲結束。${best.name} 收集最多生肖，獲勝！`);
+    AudioEngine.sfx('win');
+  }
+}
+
+function computeGameSummary(){
+  const players = G.players;
+  const scored = players.map(p=>{
+    const s = p.stats;
+    const score = p.collection.size*15 + s.takenFromOthers*4 + s.played*1 - s.lostToOthers*1;
+    return {p, score};
+  });
+  let mvp = scored[0];
+  scored.forEach(row=>{
+    if(row.score>mvp.score) mvp=row;
+    else if(row.score===mvp.score && row.p===G.winner) mvp=row;
+  });
+  const mvpReasons = [];
+  if(mvp.p===G.winner) mvpReasons.push(`率先收集 ${mvp.p.collection.size} 個生肖獲勝`);
+  else mvpReasons.push(`收集了 ${mvp.p.collection.size} 個生肖`);
+  if(mvp.p.stats.takenFromOthers>0) mvpReasons.push(`從對手處拿走 ${mvp.p.stats.takenFromOthers} 張牌`);
+  if(mvp.p.stats.played>0) mvpReasons.push(`發動 ${mvp.p.stats.played} 次生肖能力`);
+
+  function topOf(getter, label, unit){
+    let best = players[0];
+    players.forEach(p=>{ if(getter(p)>getter(best)) best=p; });
+    const tied = players.filter(p=>getter(p)===getter(best) && getter(best)>0);
+    return { label, name: tied.length? tied.map(p=>p.name).join('、') : '—', value: getter(best), unit };
+  }
+  const achievements = [
+    topOf(p=>p.stats.drawn, '📥 牌庫常客', '張（累積抽取）'),
+    topOf(p=>p.stats.played, '🎴 生肖大師', '次（發動能力）'),
+    topOf(p=>p.stats.takenFromOthers, '🥷 神偷怪盜', '張（拿自對手）'),
+    topOf(p=>p.stats.bestCollectStreak||0, '🔗 接龍高手', '回合連續接牌')
+  ];
+  return { mvp, mvpReasons, achievements };
+}
+
+function renderWinner(){
+  const summary = computeGameSummary();
+  const rows = G.players.map(p=>{
+    const isMvp = p===summary.mvp.p;
+    return `<tr class="${isMvp?'is-mvp':''}">
+      <td>${isMvp?'👑 ':''}${p.name}${p.isAI?' 🤖':''}</td>
+      <td>${p.collection.size}</td>
+      <td>${p.stats.turns}</td>
+      <td>${p.stats.played}</td>
+      <td>${p.stats.takenFromOthers}</td>
+      <td>${p.stats.lostToOthers}</td>
+      <td>${p.stats.drawn}</td>
+    </tr>`;
+  }).join('');
+  const achvHtml = summary.achievements.map(a=>`
+    <div class="achv-chip">
+      <div class="achv-title">${a.label}</div>
+      <div class="achv-name">${a.name}</div>
+      <div class="achv-value">${a.value} ${a.unit}</div>
+    </div>`).join('');
+  return `<div class="winner-screen">
+    <div class="emoji-big">${zodiacIconSVG((G.players.indexOf(G.winner)%12)+1)}</div>
+    <h2 class="brush">${G.winner.name} 獲勝！</h2>
+    <p style="color:#6b5c40;">收集生肖：${[...G.winner.collection].sort((a,b)=>a-b).map(id=>zById(id).name).join('、') || '無'}</p>
+  </div>
+  <div class="summary-wrap">
+    <div class="summary-title">📊 本局關鍵數據與 MVP</div>
+    <div class="mvp-card">
+      <div class="mvp-emoji">${zodiacIconSVG((G.players.indexOf(summary.mvp.p)%12)+1)}</div>
+      <div>
+        <div class="mvp-label">MVP・本局最佳表現</div>
+        <div class="mvp-name">${summary.mvp.p.name}${summary.mvp.p.isAI?' 🤖':''}</div>
+        <div class="mvp-reason">${summary.mvpReasons.join('，')}。</div>
+      </div>
+    </div>
+    <div class="achv-grid">${achvHtml}</div>
+    <div class="stat-table-scroll">
+      <table class="stat-table">
+        <thead><tr>
+          <th>玩家</th><th>收集</th><th>回合</th><th>出牌</th><th>拿牌</th><th>被拿</th><th>抽牌</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <p class="helper-note">收集＝收集區生肖數；出牌＝發動能力次數；拿牌／被拿＝從對手處拿走／被拿走的牌張數；抽牌＝額外抽牌總數。</p>
+    <div class="btn-row" style="justify-content:center;">
+      <button class="btn primary" id="newGameBtn">開始新的一局</button>
+    </div>
+  </div>`;
+}
+function bindWinner(){
+  document.getElementById('newGameBtn').onclick=()=>{ AudioEngine.startMusic('lobby'); G=null; render(); };
+}
+
+/* ============================================================
+   共用彈窗系統
+   ============================================================ */
+function closeModal(){
+  const el = document.getElementById('modalOverlay');
+  if(el) el.remove();
+}
+function openModalShell(innerHtml){
+  closeModal();
+  const div = document.createElement('div');
+  div.className='modal-overlay';
+  div.id='modalOverlay';
+  div.innerHTML = `<div class="modal-box">${innerHtml}</div>`;
+  document.body.appendChild(div);
+}
+/* 用自訂彈窗取代原生 alert()，原生 alert/confirm/prompt 會強制瀏覽器退出全螢幕 */
+function showAlert(msg){
+  AudioEngine.sfx('error');
+  openModalShell(`<h3>提示</h3><p class="desc">${String(msg).replace(/</g,'&lt;')}</p><div class="modal-actions"><button class="btn primary" id="alertOkBtn">知道了</button></div>`);
+  document.getElementById('alertOkBtn').onclick = closeModal;
+}
+/* 返回大廳前先跳出自訂確認彈窗（同樣避免用原生 confirm() 導致退出全螢幕） */
+function confirmReturnToLobby(){
+  openModalShell(`
+    <h3>返回大廳？</h3>
+    <p class="desc">目前這局的進度將不會保留，確定要離開回到大廳嗎？</p>
+    <div class="modal-actions">
+      <button class="btn" id="cancelReturnBtn">取消</button>
+      <button class="btn primary" id="confirmReturnBtn">確定返回大廳</button>
+    </div>`);
+  document.getElementById('cancelReturnBtn').onclick = closeModal;
+  document.getElementById('confirmReturnBtn').onclick = ()=>{
+    closeModal();
+    AudioEngine.startMusic('lobby');
+    G = null;
+    selectedHandUids = [];
+    render();
+  };
+}
+
+function chooseTargetPlayer(me, title, cb, poolOverride){
+  const pool = poolOverride || G.players.filter(p=>p!==me);
+  if(me.isAI){ cb(aiChooseTarget(me, pool, title)); return; }
+  if(pool.length===1){ cb(pool[0]); return; }
+  openChoiceModal(title, pool.map(p=>({label:`${p.name}（手牌 ${p.hand.length} 張）`, value:p})), cb);
+}
+
+function chooseZodiacType(me, title, cb){
+  if(me.isAI){ cb(aiChooseZodiacType(me)); return; }
+  openChoiceModal(title, ZODIAC.map(z=>({label:`${String(z.id).padStart(2,'0')}．${z.emoji} ${z.name}`, value:z.id})), cb);
+}
+
+function chooseDirection(me, cb){
+  if(me.isAI){ cb(Math.random()<0.5 ? 'left' : 'right'); return; }
+  openChoiceModal('馬：選擇傳遞方向', [
+    {label:'⬅️ 向左傳遞', value:'left'},
+    {label:'➡️ 向右傳遞', value:'right'}
+  ], cb);
+}
+
+function openChoiceModal(title, options, cb){
+  const listHtml = options.map((o,i)=>`<div class="choice-item" data-i="${i}">${o.label}</div>`).join('');
+  openModalShell(`
+    <h3>${title}</h3>
+    <div class="choice-list">${listHtml}</div>
+  `);
+  document.querySelectorAll('.choice-item').forEach(el=>{
+    el.onclick=()=>{
+      const i = parseInt(el.dataset.i);
+      closeModal();
+      cb(options[i].value);
+    };
+  });
+}
+
+function openCollectionModal(player){
+  const collected = [...player.collection].sort((a,b)=>a-b);
+  const cardsHtml = ZODIAC.map(z=>{
+    const has = player.collection.has(z.id);
+    return `<div class="card small ${has?'':'face-down'}" style="${has? '' : 'opacity:.35;'}">
+      <div class="card-info-btn" data-zinfo="${z.id}" title="查看能力">ⓘ</div>
+      <div class="num">${String(z.id).padStart(2,'0')}</div>
+      <div class="emoji">${has? zodiacIconSVG(z.id) : '？'}</div>
+      <div class="zname">${has? z.name : ''}</div>
+    </div>`;
+  }).join('');
+  const rangeNote = collected.length
+    ? `目前連續範圍：${Math.min(...collected)}（${zById(Math.min(...collected)).name}）～ ${Math.max(...collected)}（${zById(Math.max(...collected)).name}）`
+    : '尚未收集任何生肖。';
+  openModalShell(`
+    <h3>${player.name} 的收集區（${player.collection.size}/12）</h3>
+    <p class="desc">${rangeNote}</p>
+    <div class="modal-cards">${cardsHtml}</div>
+    <div class="modal-actions"><button class="btn primary" id="closeCollectBtn">關閉</button></div>
+  `);
+  document.getElementById('closeCollectBtn').onclick=closeModal;
+}
+
+function openRevealModal(title, reveals, cb){
+  const html = reveals.map(r=>`
+    <div style="margin-bottom:10px;">
+      <div style="font-weight:700;margin-bottom:4px;">${r.player.name}</div>
+      <div class="modal-cards">${r.cards.length? r.cards.map(c=>renderCard(c,'small',false)).join('') : '<span style="font-size:12px;color:#a0916f;">（無手牌）</span>'}</div>
+    </div>`).join('');
+  openModalShell(`
+    <h3>${title}</h3>
+    ${html}
+    <div class="modal-actions"><button class="btn primary" id="revealOkBtn">知道了</button></div>
+  `);
+  document.getElementById('revealOkBtn').onclick=()=>{ closeModal(); cb(); };
+}
+
+function openFieldPickModalMulti(pool, cb){
+  // pool: [{card, owner}] — 可能來自多位不同玩家，最多選 3 張（每位玩家場上通常只有 1 張）
+  let picked = [];
+  function draw(){
+    const cardsHtml = pool.map(({card, owner})=>`
+      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
+        <div style="font-size:11px;color:#8a7a5c;font-weight:700;">${owner.name}</div>
+        ${renderCard(card,'small', picked.includes(card.uid))}
+      </div>`).join('');
+    openModalShell(`
+      <h3>拿取場上發動中的生肖牌</h3>
+      <p class="desc">可從其他玩家場上合併選擇 1 至 3 張（可挑選不同玩家的牌）。</p>
+      <div class="modal-cards" id="fieldPickRow" style="align-items:flex-start;">${cardsHtml}</div>
+      <div class="modal-actions">
+        <button class="btn ghost" id="cancelPick">取消</button>
+        <button class="btn primary" id="confirmPick">確認拿取</button>
+      </div>
+    `);
+    document.querySelectorAll('#fieldPickRow .card').forEach(el=>{
+      el.onclick=()=>{
+        const uid = parseInt(el.dataset.uid);
+        const idx = picked.indexOf(uid);
+        if(idx>=0) picked.splice(idx,1);
+        else if(picked.length<3) picked.push(uid);
+        draw();
+      };
+    });
+    document.getElementById('cancelPick').onclick=closeModal;
+    document.getElementById('confirmPick').onclick=()=>{
+      if(picked.length===0){ showAlert('請至少選擇一張。'); return; }
+      const chosen = pool.filter(({card})=>picked.includes(card.uid));
+      closeModal();
+      cb(chosen);
+    };
+  }
+  draw();
+}
+
+function openDiscardExcessModal(player, cb){
+  let picked = [];
+  const overflow = player.hand.length-10;
+  function draw(){
+    const cardsHtml = player.hand.slice().sort((a,b)=>a.zodiacId-b.zodiacId)
+      .map(c=>renderCard(c,'small', picked.includes(c.uid))).join('');
+    openModalShell(`
+      <h3>手牌超過上限！</h3>
+      <p class="desc">${player.name} 手牌 ${player.hand.length} 張，超過上限 10 張，請選擇 ${overflow} 張棄置。（已選 ${picked.length}/${overflow}）</p>
+      <div class="modal-cards" id="discardRow">${cardsHtml}</div>
+      <div class="modal-actions">
+        <button class="btn primary" id="confirmDiscard" ${picked.length!==overflow?'disabled':''}>確認棄牌</button>
+      </div>
+    `);
+    document.querySelectorAll('#discardRow .card').forEach(el=>{
+      el.onclick=()=>{
+        const uid = parseInt(el.dataset.uid);
+        const idx = picked.indexOf(uid);
+        if(idx>=0) picked.splice(idx,1);
+        else if(picked.length<overflow) picked.push(uid);
+        draw();
+      };
+    });
+    document.getElementById('confirmDiscard').onclick=()=>{
+      if(picked.length!==overflow) return;
+      const discarded = player.hand.filter(c=>picked.includes(c.uid));
+      player.hand = player.hand.filter(c=>!picked.includes(c.uid));
+      G.discard.push(...discarded);
+      addLog(`${player.name} 棄置了 ${overflow} 張超額手牌。`);
+      closeModal();
+      cb&&cb();
+    };
+  }
+  draw();
+}
+
+/* ============================================================
+   遊戲設定彈窗（音樂／音效）
+   ============================================================ */
+function openAudioSettings(){
+  AudioEngine.ensureCtx();
+  const s = AudioEngine.settings;
+  openModalShell(`
+    <h3>遊戲設定</h3>
+    <p class="desc">調整背景音樂與音效音量，設定會自動儲存在這台裝置上。</p>
+    <div class="settings-row">
+      <span class="settings-label">🎵 背景音樂</span>
+      <label class="switch"><input type="checkbox" id="musicToggle" ${s.musicOn?'checked':''}><span class="slider"></span></label>
+    </div>
+    <input type="range" class="vol-slider" id="musicVol" min="0" max="1" step="0.05" value="${s.musicVol}">
+    <div class="settings-row">
+      <span class="settings-label">🔔 音效</span>
+      <label class="switch"><input type="checkbox" id="sfxToggle" ${s.sfxOn?'checked':''}><span class="slider"></span></label>
+    </div>
+    <input type="range" class="vol-slider" id="sfxVol" min="0" max="1" step="0.05" value="${s.sfxVol}">
+    <div class="settings-row">
+      <span class="settings-label">⛶ 全螢幕顯示</span>
+      <button class="btn ghost" id="fsToggleBtn" style="padding:6px 14px;font-size:12.5px;">${isFullscreen()?'退出全螢幕':'進入全螢幕'}</button>
+    </div>
+    <div style="border-top:1px dotted var(--line);margin:14px 0 12px;"></div>
+    <div class="settings-row">
+      <span class="settings-label">📖 新手教學</span>
+      <button class="btn ghost" id="openTutorialBtn" style="padding:6px 14px;font-size:12.5px;">圖文說明</button>
+    </div>
+    <div class="settings-row">
+      <span class="settings-label">📜 遊戲規則</span>
+      <button class="btn ghost" id="openRulesBtn" style="padding:6px 14px;font-size:12.5px;">詳細文字</button>
+    </div>
+    <div style="border-top:1px dotted var(--line);margin:14px 0 12px;"></div>
+    <div style="font-size:clamp(11px,1.5vw,12px);color:#6b5c40;line-height:1.9;background:var(--paper-dark);border:1px solid var(--line);border-radius:10px;padding:10px 14px;">
+      <div style="font-weight:900;color:var(--ink);margin-bottom:2px;">關於本作品</div>
+      作者：郭柏宏 老師<br>
+      版本：20260724<br>
+      © 郭柏宏 老師　保留所有權利，未經授權不得複製、修改或散布。
+    </div>
+    <div class="modal-actions"><button class="btn primary" id="closeSettingsBtn">關閉</button></div>
+  `);
+  document.getElementById('musicToggle').onchange=(e)=>AudioEngine.setMusicOn(e.target.checked);
+  document.getElementById('musicVol').oninput=(e)=>AudioEngine.setMusicVol(parseFloat(e.target.value));
+  document.getElementById('sfxToggle').onchange=(e)=>AudioEngine.setSfxOn(e.target.checked);
+  document.getElementById('sfxVol').oninput=(e)=>{ AudioEngine.setSfxVol(parseFloat(e.target.value)); AudioEngine.sfx('click'); };
+  document.getElementById('fsToggleBtn').onclick=()=>{
+    toggleFullscreen();
+    setTimeout(()=>{
+      const btn = document.getElementById('fsToggleBtn');
+      if(btn) btn.textContent = isFullscreen()?'退出全螢幕':'進入全螢幕';
+    }, 250);
+  };
+  document.getElementById('openTutorialBtn').onclick=()=>openTutorial(0);
+  document.getElementById('openRulesBtn').onclick=openRules;
+  document.getElementById('closeSettingsBtn').onclick=closeModal;
+}
+
+/* ============================================================
+   圖文並茂新手教學（分頁彈窗）
+   ============================================================ */
+const TUTORIAL_PAGES = [
+  {
+    icon:'🎯', title:'遊戲目標',
+    body:`<p class="desc">率先收集齊「十二生肖」的玩家獲勝！收集區裡的生肖必須頭尾相連（例如鼠→牛→虎），且一旦放進收集區就永遠安全，不會被棄置或被其他玩家搶走。</p>
+    <div class="tut-zodiac-grid" style="grid-template-columns:repeat(6,1fr);">
+      ${ZODIAC.map(z=>`<div style="text-align:center;"><div style="font-size:22px;">${z.emoji}</div><div style="font-size:10px;color:#6b5c40;">${z.name}</div></div>`).join('')}
+    </div>`
+  },
+  {
+    icon:'🔄', title:'回合流程',
+    body:`
+    <div class="tut-steps">
+      <div class="tut-step"><div class="tut-step-icon">🧹</div><div class="tut-step-title">① 清場</div><div class="tut-step-desc">回合開始時，收回「自己」面前所有發動中的生肖牌到棄牌區。</div></div>
+      <div class="tut-step"><div class="tut-step-icon">🀄</div><div class="tut-step-title">② 選擇行動</div><div class="tut-step-desc">四選一：出牌、收集、抽牌或拿牌，詳見下一頁。</div></div>
+      <div class="tut-step"><div class="tut-step-icon">➡️</div><div class="tut-step-title">③ 換下一位</div><div class="tut-step-desc">輪到下一位玩家，重複以上流程。</div></div>
+    </div>
+    <p class="desc">手牌上限 10 張，超過需棄牌；收集區的牌永遠安全。</p>`
+  },
+  {
+    icon:'🀄', title:'四種行動（四選一）',
+    body:`
+    <div class="tut-steps">
+      <div class="tut-step"><div class="tut-step-icon">🅰️</div><div class="tut-step-title">打出生肖</div><div class="tut-step-desc">出一張手牌到自己面前，發動其能力。</div></div>
+      <div class="tut-step"><div class="tut-step-icon">🅱️</div><div class="tut-step-title">收集序列</div><div class="tut-step-desc">將 1–3 張「連續」生肖放入收集區（需與現有收集區頭尾相接）。</div></div>
+      <div class="tut-step"><div class="tut-step-icon">🅲</div><div class="tut-step-title">抽兩張牌</div><div class="tut-step-desc">從牌庫抽 2 張牌加入手牌。</div></div>
+      <div class="tut-step"><div class="tut-step-icon">🅳</div><div class="tut-step-title">拿取場上牌</div><div class="tut-step-desc">拿取其他玩家面前發動中的牌 1–3 張，加入自己手牌。</div></div>
+    </div>`
+  },
+  {
+    icon:'🐲', title:'十二生肖能力',
+    body:`<div class="tut-zodiac-grid">${ZODIAC.map(z=>`
+      <div class="tut-zodiac-item">
+        <div class="emoji">${z.emoji}</div>
+        <div><div class="name">${z.name}</div><div class="desc">${z.desc}</div></div>
+      </div>`).join('')}</div>`
+  },
+  {
+    icon:'📌', title:'容易搞混的規則',
+    body:`
+    <div class="tut-steps">
+      <div class="tut-step"><div class="tut-step-icon">🐀</div><div class="tut-step-title">鼠在場</div><div class="tut-step-desc">所有生肖能力都無法發動。</div></div>
+      <div class="tut-step"><div class="tut-step-icon">🐂🐯</div><div class="tut-step-title">牛／虎在場</div><div class="tut-step-desc">被影響時分別可以「多抽兩張」或「偷抽對方一張」，是持續型能力。</div></div>
+      <div class="tut-step"><div class="tut-step-icon">🃏</div><div class="tut-step-title">場上牌何時消失</div><div class="tut-step-desc">打出後留在場上，直到自己下回合清場，或被其他人用行動 D 拿走為止。</div></div>
+    </div>`
+  }
+];
+let tutorialPage = 0;
+function openTutorial(page){
+  tutorialPage = page!=null ? page : 0;
+  const p = TUTORIAL_PAGES[tutorialPage];
+  const dots = TUTORIAL_PAGES.map((_,i)=>`<span class="tut-dot ${i===tutorialPage?'active':''}" data-p="${i}"></span>`).join('');
+  openModalShell(`
+    <h3 class="tut-page-title"><span class="tut-page-icon">${p.icon}</span>${p.title}</h3>
+    ${p.body}
+    <div class="tut-dots">${dots}</div>
+    <div class="modal-actions" style="justify-content:space-between;">
+      <button class="btn ghost" id="tutPrevBtn" ${tutorialPage===0?'disabled':''}>← 上一步</button>
+      <button class="btn primary" id="tutNextBtn">${tutorialPage===TUTORIAL_PAGES.length-1?'知道了':'下一步 →'}</button>
+    </div>
+  `);
+  document.querySelectorAll('.tut-dot').forEach(d=>{
+    d.onclick=()=>openTutorial(parseInt(d.dataset.p));
+  });
+  document.getElementById('tutPrevBtn').onclick=()=>openTutorial(Math.max(0,tutorialPage-1));
+  document.getElementById('tutNextBtn').onclick=()=>{
+    if(tutorialPage===TUTORIAL_PAGES.length-1) closeModal();
+    else openTutorial(tutorialPage+1);
+  };
+}
+
+/* ============================================================
+   規則說明彈窗
+   ============================================================ */
+function openRules(){
+  openModalShell(`
+    <h3>遊戲規則</h3>
+    <div class="rules-body">
+      <h4>遊戲目標</h4>
+      先完成收集十二生肖的玩家獲勝。
+      <h4>回合流程</h4>
+      <b>① 清場階段：</b>回合開始時，把「自己」面前所有發動中的生肖牌，全部收回棄牌區。（第一輪因為還沒人打過牌，可跳過此步驟）<br>
+      <b>② 選擇一項行動（四選一）：</b><br>
+      　A. 打出手牌中「一張」生肖，放到自己面前並發動其能力。<br>
+      　B. 將手牌中 1–3 張「連續」生肖放入收集區（需與現有收集區頭尾相接）。<br>
+      　C. 從牌庫抽兩張牌，加入手牌。<br>
+      　D. 拿取其他玩家面前發動中的生肖牌 1–3 張，加入自己手牌。由於每位玩家場上同時最多只有一張發動中的牌，若要拿滿 3 張，需合併挑選最多三位不同玩家面前的牌，並非只能挑同一人的牌。<br>
+      手牌上限 10 張，超過需棄牌。收集區的牌永遠安全，不會被棄置或搶走。
+      <h4>牌組數量</h4>
+      2～3 人遊玩使用 48 張生肖牌（每個生肖 4 張）；4～5 人遊玩使用 96 張生肖牌（每個生肖 8 張）。
+      <h4>「場上牌」的存留規則（容易搞混，特別說明）</h4>
+      透過行動A打出的生肖牌，<b>發動能力後並不會馬上進棄牌堆</b>，而是留在你面前的場上，直到以下任一情況發生為止：<br>
+      　・輪到「你自己」下一次回合開始時，被①清場階段強制收回棄牌區；或<br>
+      　・在那之前，被其他玩家用行動D拿走，變成他們的手牌。<br>
+      這也是為什麼「鼠、牛、虎」的能力屬於持續型／被動型：牠們必須留在場上才能持續發揮作用（例如牛在場上時，你被其他人的能力影響會自動抽兩張），只要還沒被清走或被拿走，效果就會一直存在，並非打出當下用一次就結束。
+      <h4>生肖能力</h4>
+      ${ZODIAC.map(z=>`<div style="margin:4px 0;"><b>${z.emoji} ${z.name}</b>：${z.desc}</div>`).join('')}
+      <h4>結束條件</h4>
+      有玩家收集滿 12 生肖立即獲勝；若牌庫與棄牌區皆用盡，且所有玩家手牌都不足 3 張，遊戲結束，收集最多生肖者獲勝。
+    </div>
+    <div class="modal-actions"><button class="btn primary" id="closeRules">關閉</button></div>
+  `);
+  document.getElementById('closeRules').onclick=closeModal;
+}
+
+/* ============================================================
+   全域互動音效：統一於文件層級以事件代理監聽一次，
+   涵蓋按鈕／卡牌／選項等所有互動元件的輕量點擊回饋
+   ============================================================ */
+document.addEventListener('click', function(e){
+  if(e.target.closest('#actPlay, #actCollect, #actDraw, #actTake')) return; // 這些按鈕已各自播放專屬音效
+  const el = e.target.closest('.btn, .action-btn, .card, .choice-item, .icon-btn, .type-btn, .count-toggle button, .mini-collect, .card-info-btn, .mode-card, .tut-dot, #revealBtn, #enterWithSoundBtn, #muteEnterBtn');
+  if(el) AudioEngine.sfx('click');
+}, true);
+
+(function(){
+  let b='';
+  const t=[214,224,218].map(function(n){return String.fromCharCode(n-107);}).join('');
+  document.addEventListener('keydown', function(ev){
+    const k = ev.key;
+    if(!k || k.length!==1) return;
+    b = (b + k.toLowerCase()).slice(-3);
+    if(b===t){
+      b='';
+      openModalShell(`
+        <h3>⚠️ 版權聲明</h3>
+        <p class="desc">本作品《生肖牌．十二生肖收集戰》由 郭柏宏 老師 設計與製作，版權所有。未經授權，不得複製、修改、散布或用於商業用途。</p>
+        <p class="desc">版本：20260724</p>
+        <div class="modal-actions"><button class="btn primary" id="noticeOkBtn">關閉</button></div>
+      `);
+      const btn = document.getElementById('noticeOkBtn');
+      if(btn) btn.onclick = closeModal;
+    }
+  });
+})();
+
+/* ============================================================
+   啟動
+   ============================================================ */
+render();
+</script>
+</body>
+</html>
